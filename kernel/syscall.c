@@ -1078,13 +1078,22 @@ static uint64_t sys_fb_mmap(uint64_t u1, uint64_t u2, uint64_t u3, uint64_t u4, 
     uint64_t page_start = vaddr & ~(0x1000 - 1);
     uint64_t page_end = (vaddr + fb_size + 0x1000 - 1) & ~(0x1000 - 1);
     for (uint64_t offset = 0; offset < page_end - page_start; offset += 0x1000) {
-        vmm_map_page(fb_phys + offset, page_start + offset, 0x03 | 0x80);  // PRESENT|WRITE|USER
+        vmm_map_page(fb_phys + offset, page_start + offset, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
     }
 
     if (proc->cr3 != old_cr3) {
         __asm__ volatile("mov %0, %%cr3" :: "r"(old_cr3) : "memory");
     }
     return vaddr;
+}
+
+static uint64_t sys_fb_info(uint64_t buf, uint64_t u1, uint64_t u2, uint64_t u3, uint64_t u4) {
+    (void)u1; (void)u2; (void)u3; (void)u4;
+    if (!is_user_range(buf, 16)) return -EFAULT;
+    uint32_t *m = (uint32_t*)buf;
+    extern void fb_get_info(uint32_t*, uint32_t*, uint32_t*, uint8_t*);
+    fb_get_info(&m[0], &m[1], &m[2], (uint8_t*)&m[3]);
+    return 0;
 }
 
 static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) = {
@@ -1158,8 +1167,8 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_MOUNT]        = sys_mount,
     [SYS_UMOUNT2]      = sys_umount2,
     [SYS_FB_MMAP]      = sys_fb_mmap,
-    [SYS_INPUT_FD]     = (void*)0,  // stub for now
-    [SYS_FB_INFO]      = (void*)0,  // stub for now
+    [SYS_INPUT_FD]     = (void*)0,  // not needed — /dev/input used instead
+    [SYS_FB_INFO]      = sys_fb_info,
 };
 
 #define SYSCALL_COUNT (sizeof(syscall_table) / sizeof(syscall_table[0]))
