@@ -2,6 +2,7 @@
 #include "kernel.h"
 #include "boot.h"
 #include "serial.h"
+#include "hal/hal.h"
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -137,6 +138,10 @@ static void vfs_storage_init(void) {
 
     boot_stage_begin("AHCI init");
     ahci_init();
+    boot_stage_end();
+
+    boot_stage_begin("HAL storage init");
+    storage_init();
     boot_stage_end();
 
     boot_stage_begin("devfs init");
@@ -396,6 +401,11 @@ void kernel_main(uint32_t magic, uint32_t info_ptr) {
     initrd_mount();
     device_init();
     smp_bringup();
+
+    boot_stage_begin("HAL init");
+    hal_init();
+    boot_stage_end();
+
     syscall_task_init();
 
     printk(KERN_INFO "ShadowBox syscall interface initialized.\n");

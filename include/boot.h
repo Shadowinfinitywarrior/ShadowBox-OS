@@ -11,7 +11,7 @@ struct boot_stage {
     uint64_t end_tick;
 };
 
-#define MAX_BOOT_STAGES 32
+#define MAX_BOOT_STAGES 64
 
 void boot_stage_begin(const char *name);
 void boot_stage_end(void);

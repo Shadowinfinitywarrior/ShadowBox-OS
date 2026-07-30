@@ -50,6 +50,13 @@ ARCH_DRV_OBJS = \
 	arch/x86_64/drivers/rtl8139.o \
 	arch/x86_64/drivers/e1000.o
 
+HAL_OBJS = \
+	kernel/hal/hal.o \
+	kernel/hal/cpu.o \
+	kernel/hal/memory.o \
+	kernel/hal/storage.o \
+	kernel/hal/peripheral.o
+
 KERNEL_OBJS = \
 	kernel/main.o \
 	kernel/boot.o \
@@ -67,7 +74,8 @@ KERNEL_OBJS = \
 	kernel/memory.o \
 	kernel/time.o \
 	kernel/input.o \
-	kernel/trackpad.o
+	kernel/trackpad.o \
+	$(HAL_OBJS)
 
 FS_OBJS = \
 	fs/block.o \
