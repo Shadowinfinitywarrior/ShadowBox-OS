@@ -34,7 +34,7 @@ void usb_init(void) {
                     uint32_t bar0_high = pci_config_read(bus, dev, 0, 0x14);
                     uint64_t bar0 = ((uint64_t)bar0_high << 32) | (bar0_low & 0xFFFFFFF0);
                     
-                    printk(KERN_INFO "USB: xHCI Base Address (MMIO): 0x%lx\n", bar0);
+                    printk(KERN_INFO "USB: xHCI Base Address (MMIO): 0x%llx\n", bar0);
                     
                     // Map xHCI MMIO (usually 8KB)
                     uint64_t virt_bar0 = (uint64_t)vmap_phys(bar0, 8192);
@@ -62,7 +62,7 @@ void usb_init(void) {
                     // Write CRCR (offset 0x18 from opbase)
                     *(volatile uint64_t *)(opbase + 0x18) = cmd_ring_phys | 1; // 1 = Ring Cycle State
                     
-                    printk(KERN_INFO "USB: xHCI DCBAA (0x%lx) and Command Ring (0x%lx) initialized\n", dcbaa_phys, cmd_ring_phys);
+                    printk(KERN_INFO "USB: xHCI DCBAA (0x%llx) and Command Ring (0x%llx) initialized\n", dcbaa_phys, cmd_ring_phys);
                     
                 } else if (prog_if == 0x20) {
                     printk(KERN_INFO "USB: Found EHCI (USB 2.0) Controller at PCI %d:%d\n", bus, dev);

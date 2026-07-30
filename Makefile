@@ -52,6 +52,7 @@ ARCH_DRV_OBJS = \
 
 KERNEL_OBJS = \
 	kernel/main.o \
+	kernel/boot.o \
 	kernel/printk.o \
 	kernel/task.o \
 	kernel/vfs.o \
@@ -221,7 +222,7 @@ size: os.bin
 	x86_64-linux-gnu-size os.bin
 
 clean:
-	rm -f $(OBJS) $(DEPS) os.bin os.iso shell.elf hello.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf userland/*.o initrd.tar ahci_disk.img
+	rm -f $(OBJS) $(DEPS) os.bin os.iso shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf userland/*.o initrd.tar ahci_disk.img
 	rm -rf isodir
 	rm -f objdump.txt
 
