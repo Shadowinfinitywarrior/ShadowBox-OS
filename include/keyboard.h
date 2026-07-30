@@ -1,21 +1,40 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef SHADOWBOX_KEYBOARD_H
+#define SHADOWBOX_KEYBOARD_H
 
 #include "types.h"
 
-typedef struct {
-    uint8_t type;    // 0=key press, 1=key release, 2=mouse move, 3=mouse button
-    uint8_t code;    // scancode for keys, button mask for mouse
-    int16_t x;
-    int16_t y;
-} input_event_t;
+#include "input.h"
 
-void input_push(uint8_t type, uint8_t code, int16_t x, int16_t y);
-int input_poll_event(input_event_t *ev);
-
+/*
+ * keyboard_handler - IRQ handler for keyboard interrupts
+ */
 void keyboard_handler(void);
+
+/*
+ * keyboard_init - Initialize keyboard controller
+ */
 void keyboard_init(void);
-char keyboard_getchar(void); // blocking read
+
+/*
+ * keyboard_getchar - Read a character from keyboard (blocking)
+ * Returns: ASCII character
+ */
+char keyboard_getchar(void);
+
+/*
+ * keyboard_has_char - Check if a character is available
+ * Returns: 1 if character available, 0 otherwise
+ */
 int keyboard_has_char(void);
+
+/*
+ * mouse_init - Initialize the PS/2 mouse controller
+ */
+void mouse_init(void);
+
+/*
+ * mouse_handler - IRQ handler for mouse interrupts
+ */
+void mouse_handler(void);
 
 #endif

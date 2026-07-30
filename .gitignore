@@ -1,0 +1,20 @@
+# Build artifacts
+*.o
+*.d
+*.elf
+*.bin
+*.iso
+*.img
+*.tar
+*.log
+
+# Temp files
+*.bak
+*.swp
+
+# QEMU
+qemu_out.log
+qemu.log
+
+# Tool config
+.mimocode/

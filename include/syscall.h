@@ -1,12 +1,12 @@
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#ifndef SHADOWBOX_SYSCALL_H
+#define SHADOWBOX_SYSCALL_H
 
 #include "types.h"
 
-#define SYS_READ        0
-#define SYS_WRITE       1
-#define SYS_OPEN        2
-#define SYS_CLOSE       3
+#define SB_PULL_DATA        0
+#define SB_PUSH_DATA       1
+#define SB_ACQUIRE        2
+#define SB_RELEASE       3
 #define SYS_STAT        4
 #define SYS_FSTAT       5
 #define SYS_LSEEK       8
@@ -25,9 +25,9 @@
 #define SYS_NANOSLEEP   35
 #define SYS_GETPID      39
 #define SYS_CLONE       56
-#define SYS_FORK        57
-#define SYS_EXECVE      59
-#define SYS_EXIT        60
+#define SB_REPLICATE        57
+#define SB_MORPH      59
+#define SB_TERMINATE        60
 #define SYS_WAIT4       61
 #define SYS_KILL        62
 #define SYS_UNAME       63
@@ -43,7 +43,7 @@
 #define SYS_GETTID      186
 #define SYS_TIME        201
 #define SYS_CLOCK_GETTIME 228
-#define SYS_EXIT_GROUP  231
+#define SB_TERMINATE_GROUP  231
 #define SYS_TIMES       100
 #define SYS_PROC_INFO   101
 #define SYS_MEM_INFO    120
@@ -55,13 +55,17 @@
 #define SYS_GETTIMEOFDAY 96
 #define SYS_SETUID      105
 #define SYS_SETGID      106
-#define SYS_SOCKET      41
-#define SYS_CONNECT     42
-#define SYS_ACCEPT      43
-#define SYS_SENDTO      44
-#define SYS_RECVFROM    45
-#define SYS_BIND        49
-#define SYS_LISTEN      50
+#define SB_SOCKET_CREATE      41
+#define SB_SOCKET_CONNECT     42
+#define SB_SOCKET_ACCEPT      43
+#define SB_SOCKET_SENDTO      44
+#define SB_SOCKET_RECVFROM    45
+#define SB_SOCKET_BIND        49
+#define SB_SOCKET_LISTEN      50
+
+#define SB_IPC_CALL           250
+#define SB_IPC_REPLY_WAIT     251
+
 #define SYS_GETPRIORITY 140
 #define SYS_SETPRIORITY 141
 #define SYS_GETRLIMIT   97
@@ -77,9 +81,35 @@
 #define SYS_FB_INFO      202
 #define SYS_UMOUNT2     52
 
+/*
+ * syscall_init - Initialize syscall handler (MSR_LSTAR setup)
+ */
 void syscall_init(void);
+
+/*
+ * syscall_handler - Main syscall dispatch function
+ * @rax:  Syscall number
+ * @arg1-arg5: Syscall arguments
+ * Returns: Syscall return value
+ */
 uint64_t syscall_handler(uint64_t rax, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
+
+/*
+ * syscall_set_kernel_stack - Set kernel stack for syscalls
+ * @stack: Stack pointer value
+ */
 void syscall_set_kernel_stack(uint64_t stack);
+
+/*
+ * syscall_get_user_stack - Get user stack from syscall entry
+ * Returns: User stack pointer
+ */
 uint64_t syscall_get_user_stack(void);
+
+/*
+ * syscall_set_user_stack - Set user stack for syscall return
+ * @stack: Stack pointer value
+ */
+void syscall_set_user_stack(uint64_t stack);
 
 #endif

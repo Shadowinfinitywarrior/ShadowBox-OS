@@ -11,30 +11,7 @@ static char kbd_buffer[BUFFER_SIZE];
 static volatile int kbd_head = 0;
 static volatile int kbd_tail = 0;
 
-// Input event ring buffer for userland DE (input_event_t from keyboard.h)
-static input_event_t input_ring[256];
-static volatile int input_head = 0;
-static volatile int input_tail = 0;
 
-void input_push(uint8_t type, uint8_t code, int16_t x, int16_t y) {
-    int next = (input_head + 1) % 256;
-    if (next != input_tail) {
-        input_ring[input_head].type = type;
-        input_ring[input_head].code = code;
-        input_ring[input_head].x = x;
-        input_ring[input_head].y = y;
-        __sync_synchronize();
-        input_head = next;
-    }
-}
-
-int input_poll_event(input_event_t *ev) {
-    if (input_tail == input_head) return 0;
-    *ev = input_ring[input_tail];
-    __sync_synchronize();
-    input_tail = (input_tail + 1) % 256;
-    return 1;
-}
 
 static const char kbd_us_map[128] = {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', /* 9 */
@@ -78,8 +55,10 @@ static const char kbd_us_map[128] = {
 static uint8_t shift_pressed = 0;
 
 void keyboard_handler(void) {
+    while (!(inb(0x3F8 + 5) & 0x20));
+    outb(0x3F8, 'K');
     uint8_t scancode = inb(KB_PORT);
-    
+
     if (scancode & 0x80) {
         // Key release
         input_push(1, scancode & 0x7F, 0, 0);
@@ -91,6 +70,7 @@ void keyboard_handler(void) {
         // Key press
         if (scancode == 0x2A || scancode == 0x36) {
             shift_pressed = 1;
+            input_push(0, scancode, 0, 0);
         } else {
             char c = kbd_us_map[scancode];
             if (c) {
@@ -115,7 +95,7 @@ void keyboard_handler(void) {
                 else if (shift_pressed && c == '.') c = '>';
                 else if (shift_pressed && c == '/') c = '?';
                 else if (shift_pressed && c == '\\') c = '|';
-                
+
                 int next_head = (kbd_head + 1) % BUFFER_SIZE;
                 if (next_head != kbd_tail) {
                     kbd_buffer[kbd_head] = c;
@@ -128,7 +108,7 @@ void keyboard_handler(void) {
 }
 
 void keyboard_init(void) {
-    printk("Keyboard initialized.\n");
+    printk(KERN_INFO "Keyboard initialized.\n");
 }
 
 char keyboard_getchar(void) {

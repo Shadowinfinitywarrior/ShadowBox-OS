@@ -19,7 +19,7 @@ static uint32_t dev_null_write(vfs_node_t *node, uint32_t offset, uint32_t size,
 
 static uint32_t dev_zero_read(vfs_node_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     (void)node; (void)offset;
-    for (uint32_t i = 0; i < size; i++) buffer[i] = 0;
+    memset(buffer, 0, size);
     return size;
 }
 
@@ -37,11 +37,17 @@ static uint32_t dev_input_read(vfs_node_t *node, uint32_t offset, uint32_t size,
     return sizeof(input_event_t);
 }
 
-static vfs_node_t *devfs_finddir(vfs_node_t *node, char *name) {
+void devfs_register_input(void) {
+    if (!devfs_root) return;
+    printk(KERN_INFO "DEVFS: Registered /dev/input\n");
+}
+
+static vfs_node_t *devfs_finddir(vfs_node_t *node, const char *name) {
     (void)node;
     if (strcmp(name, "null") == 0) {
         vfs_node_t *n = kmalloc(sizeof(vfs_node_t));
-        for (uint64_t i = 0; i < sizeof(vfs_node_t); i++) ((char*)n)[i] = 0;
+        if (!n) return NULL;
+        memset(n, 0, sizeof(vfs_node_t));
         strcpy(n->name, "null");
         n->flags = FS_CHARDEVICE;
         n->read = dev_null_read;
@@ -50,7 +56,8 @@ static vfs_node_t *devfs_finddir(vfs_node_t *node, char *name) {
     }
     if (strcmp(name, "zero") == 0) {
         vfs_node_t *n = kmalloc(sizeof(vfs_node_t));
-        for (uint64_t i = 0; i < sizeof(vfs_node_t); i++) ((char*)n)[i] = 0;
+        if (!n) return NULL;
+        memset(n, 0, sizeof(vfs_node_t));
         strcpy(n->name, "zero");
         n->flags = FS_CHARDEVICE;
         n->read = dev_zero_read;
@@ -59,22 +66,36 @@ static vfs_node_t *devfs_finddir(vfs_node_t *node, char *name) {
     }
     if (strcmp(name, "input") == 0) {
         vfs_node_t *n = kmalloc(sizeof(vfs_node_t));
-        for (uint64_t i = 0; i < sizeof(vfs_node_t); i++) ((char*)n)[i] = 0;
+        if (!n) return NULL;
+        memset(n, 0, sizeof(vfs_node_t));
         strcpy(n->name, "input");
         n->flags = FS_CHARDEVICE;
         n->read = dev_input_read;
         return n;
     }
-    return 0;
+    return NULL;
+}
+
+static struct dirent *devfs_readdir(vfs_node_t *node, uint32_t index) {
+    (void)node;
+    const char *entries[] = {"null", "zero", "input"};
+    if (index >= 3) return NULL;
+    struct dirent *d = kmalloc(sizeof(struct dirent));
+    if (!d) return NULL;
+    memset(d, 0, sizeof(struct dirent));
+    strcpy(d->name, entries[index]);
+    d->ino = index + 1;
+    return d;
 }
 
 void devfs_init(void) {
-    printk("DEVFS: Initializing /dev pseudo-filesystem...\n");
+    printk(KERN_INFO "DEVFS: Initializing /dev pseudo-filesystem...\n");
     
     devfs_root = kmalloc(sizeof(vfs_node_t));
-    for (uint64_t i = 0; i < sizeof(vfs_node_t); i++) ((char*)devfs_root)[i] = 0;
+    if (!devfs_root) return;
+    memset(devfs_root, 0, sizeof(vfs_node_t));
     strcpy(devfs_root->name, "dev");
     devfs_root->flags = FS_DIRECTORY;
     devfs_root->finddir_func = devfs_finddir;
-    // Note: /dev/input is created on-demand by devfs_finddir()
+    devfs_root->readdir_func = devfs_readdir;
 }

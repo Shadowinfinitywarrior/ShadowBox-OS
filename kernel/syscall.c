@@ -9,6 +9,7 @@
 #include "fcntl.h"
 #include "stat.h"
 #include "signal.h"
+#include "wait.h"
 #include "time.h"
 #include "uname.h"
 #include "kstring.h"
@@ -17,6 +18,11 @@
 #include "slab.h"
 #include "memory.h"
 #include "sched.h"
+
+// mprotect protection flags
+#define PROT_READ  0x1
+#define PROT_WRITE 0x2
+#define PROT_EXEC  0x4
 #include "tmpfs.h"
 
 #define MAX_PIPES 64
@@ -71,6 +77,10 @@ uint64_t syscall_get_user_stack(void) {
     return cpu0.user_stack;
 }
 
+void syscall_set_user_stack(uint64_t stack) {
+    cpu0.user_stack = stack;
+}
+
 extern void syscall_entry(void);
 
 void syscall_init(void) {
@@ -100,7 +110,9 @@ static uint32_t pipe_read_func(vfs_node_t *node, uint32_t offset, uint32_t size,
             buffer[read++] = p->buffer[p->tail++];
             p->tail %= 4096;
         } else {
-            break;
+            if (p->writers <= 0) break; // EOF
+            if (read > 0) break; // Return what we have so far
+            yield();
         }
     }
     return read;
@@ -116,13 +128,20 @@ static uint32_t pipe_write_func(vfs_node_t *node, uint32_t offset, uint32_t size
             p->buffer[p->head] = buffer[written++];
             p->head = next;
         } else {
-            break;
+            if (p->readers <= 0) { 
+                // Broken pipe
+                break;
+            }
+            yield();
         }
     }
     return written;
 }
 
-static uint64_t sys_read(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
+extern uint64_t sys_sb_ipc_call(uint64_t target_pid, uint64_t msg_ptr, uint64_t u3, uint64_t u4, uint64_t u5);
+extern uint64_t sys_sb_ipc_reply_wait(uint64_t reply_pid, uint64_t reply_msg_ptr, uint64_t req_msg_ptr, uint64_t u4, uint64_t u5);
+
+static uint64_t sb_pull(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
     (void)unused1; (void)unused2;
     if (!is_user_range(buf, count)) return -EFAULT;
     struct file *file = process_fd_get(get_current_process(), fd);
@@ -132,7 +151,7 @@ static uint64_t sys_read(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unu
     return read;
 }
 
-static uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
+static uint64_t sb_push(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
     (void)unused1; (void)unused2;
     if (fd == 1 || fd == 2) {
         if (!is_user_range(buf, count)) return -EFAULT;
@@ -143,65 +162,73 @@ static uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t count, uint64_t un
     }
     if (!is_user_range(buf, count)) return -EFAULT;
     struct file *file = process_fd_get(get_current_process(), fd);
-    if (!file) return -EBADF;
+     if (!file) return -EBADF;
     uint32_t written = vfs_write(file->node, file->offset, count, (uint8_t*)buf);
     file->offset += written;
     return written;
 }
 
-static uint64_t sys_open(uint64_t pathname, uint64_t flags, uint64_t mode, uint64_t unused1, uint64_t unused2) {
+static int check_permissions(vfs_node_t *node, uint64_t flags, struct process *proc) {
+    if (proc->uid == 0) return 1;
+    int req_read = ((flags & 3) == SB_MODE_PULL) || ((flags & 3) == SB_MODE_PULLPUSH);
+    int req_write = ((flags & 3) == SB_MODE_PUSH) || ((flags & 3) == SB_MODE_PULLPUSH) || (flags & SB_MODE_TRUNC);
+    int perm;
+    if (node->uid == proc->uid) {
+        perm = (node->mask >> 6) & 7;
+    } else if (node->gid == proc->gid) {
+        perm = (node->mask >> 3) & 7;
+    } else {
+        perm = node->mask & 7;
+    }
+    if (req_read && !(perm & 4)) return 0;
+    if (req_write && !(perm & 2)) return 0;
+    return 1;
+}
+
+static uint64_t sb_acquire(uint64_t pathname, uint64_t flags, uint64_t mode, uint64_t unused1, uint64_t unused2) {
     (void)mode; (void)unused1; (void)unused2;
     if (!is_user_range(pathname, 1)) return -EFAULT;
 
     struct process *proc = get_current_process();
-    char *name = (char*)pathname;
-
-    // Try tmpfs first for write operations or if file exists there
-    if (flags & (O_WRONLY | O_RDWR | O_CREAT | O_TRUNC)) {
-        vfs_node_t *tmp_node = tmpfs_open_file(name, (int)flags);
-        if (tmp_node) {
-            struct file *file = kmalloc(sizeof(struct file));
-            file->node = tmp_node;
-            file->offset = 0;
-            if (flags & O_TRUNC) { file->offset = 0; tmp_node->length = 0; }
-            file->flags = flags;
-            file->refcount = 0;
-            if (tmp_node->open) tmp_node->open(tmp_node);
-            int fd = process_fd_install(proc, file);
-            if (fd < 0) { kfree(file); return fd; }
-            return fd;
-        }
-    } else {
-        // Read-only: check tmpfs first
-        vfs_node_t *tmp_node = tmpfs_open_file(name, (int)flags);
-        if (tmp_node) {
-            struct file *file = kmalloc(sizeof(struct file));
-            file->node = tmp_node;
-            file->offset = 0;
-            file->flags = flags;
-            file->refcount = 0;
-            if (tmp_node->open) tmp_node->open(tmp_node);
-            int fd = process_fd_install(proc, file);
-            if (fd < 0) { kfree(file); return fd; }
-            return fd;
-        }
+    char name[128];
+    uint64_t i;
+    for (i = 0; i < 127; i++) {
+        name[i] = ((char*)pathname)[i];
+        if (!name[i]) break;
     }
+    name[127] = 0;
 
-    // Try root filesystem
-    vfs_node_t *dir = proc->cwd;
-    vfs_node_t *node = vfs_finddir(dir, name);
+    char last_comp[128];
+    vfs_node_t *dir = vfs_resolve_path(name, proc->cwd, last_comp);
+    if (!dir) return -ENOENT;
+
+    // If the path was a mount point (no last component), use the mount node directly
+    vfs_node_t *node;
+    if (last_comp[0] == 0) {
+        node = dir;
+    } else {
+        node = vfs_finddir(dir, last_comp);
+    }
+    
     if (!node) {
-        extern vfs_node_t *fs_root;
-        node = vfs_finddir(fs_root, name);
+        if (flags & SB_MODE_CREATE) {
+            node = vfs_create(dir, last_comp, mode);
+        }
         if (!node) return -ENOENT;
     }
 
     struct file *file = kmalloc(sizeof(struct file));
     file->node = node;
     file->offset = 0;
-    if (flags & O_TRUNC) file->offset = 0;
+    if (flags & SB_MODE_TRUNC) file->offset = 0;
     file->flags = flags;
     file->refcount = 0;
+
+    if (!check_permissions(node, flags, proc)) {
+        kfree(file);
+        return -EACCES;
+    }
+
 
     if (node->open) node->open(node);
 
@@ -213,7 +240,7 @@ static uint64_t sys_open(uint64_t pathname, uint64_t flags, uint64_t mode, uint6
     return fd;
 }
 
-static uint64_t sys_close(uint64_t fd, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+static uint64_t sb_release(uint64_t fd, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
     (void)unused1; (void)unused2; (void)unused3; (void)unused4;
     process_fd_close(get_current_process(), fd);
     return 0;
@@ -243,12 +270,12 @@ static uint64_t sys_stat(uint64_t pathname, uint64_t statbuf, uint64_t unused1, 
     for (uint64_t j = 0; j < sizeof(struct stat); j++) ((char*)st)[j] = 0;
 
     st->st_size = node->length;
-    st->st_mode = S_IRUSR | S_IWUSR;
+    st->st_mode = node->mask & 07777;
     if (node->flags & FS_DIRECTORY) st->st_mode |= S_IFDIR;
     else if (node->flags & FS_CHARDEVICE) st->st_mode |= S_IFCHR;
     else st->st_mode |= S_IFREG;
-    st->st_uid = 0;
-    st->st_gid = 0;
+    st->st_uid = node->uid;
+    st->st_gid = node->gid;
     
     return 0;
 }
@@ -263,12 +290,12 @@ static uint64_t sys_fstat(uint64_t fd, uint64_t statbuf, uint64_t unused1, uint6
     for (uint64_t i = 0; i < sizeof(struct stat); i++) ((char*)st)[i] = 0;
 
     st->st_size = file->node->length;
-    st->st_mode = S_IRUSR | S_IWUSR;
+    st->st_mode = file->node->mask & 07777;
     if (file->node->flags & FS_DIRECTORY) st->st_mode |= S_IFDIR;
     else if (file->node->flags & FS_CHARDEVICE) st->st_mode |= S_IFCHR;
     else st->st_mode |= S_IFREG;
-    st->st_uid = 0;
-    st->st_gid = 0;
+    st->st_uid = file->node->uid;
+    st->st_gid = file->node->gid;
     return 0;
 }
 
@@ -318,7 +345,36 @@ static uint64_t sys_mmap(uint64_t addr, uint64_t length, uint64_t prot, uint64_t
 }
 
 static uint64_t sys_mprotect(uint64_t addr, uint64_t len, uint64_t prot, uint64_t unused1, uint64_t unused2) {
-    (void)addr; (void)len; (void)prot; (void)unused1; (void)unused2;
+    (void)unused1; (void)unused2;
+    if (addr & (PAGE_SIZE - 1)) return -EINVAL;
+    if (len == 0) return -EINVAL;
+
+    uint64_t size = (len + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    uint32_t set = PAGE_PRESENT | PAGE_USER;
+    uint32_t clear = 0;
+
+    if (prot & PROT_WRITE) set |= PAGE_WRITE;
+    else clear |= PAGE_WRITE;
+
+    struct process *proc = get_current_process();
+    uint64_t old_cr3;
+    __asm__ volatile("mov %%cr3, %0" : "=r"(old_cr3));
+    if (proc->cr3 != old_cr3) {
+        __asm__ volatile("mov %0, %%cr3" :: "r"(proc->cr3) : "memory");
+    }
+
+    for (uint64_t offset = 0; offset < size; offset += PAGE_SIZE) {
+        if (vmm_set_page_flags(addr + offset, set, clear) < 0) {
+            if (proc->cr3 != old_cr3) {
+                __asm__ volatile("mov %0, %%cr3" :: "r"(old_cr3) : "memory");
+            }
+            return -ENOMEM;
+        }
+    }
+
+    if (proc->cr3 != old_cr3) {
+        __asm__ volatile("mov %0, %%cr3" :: "r"(old_cr3) : "memory");
+    }
     return 0;
 }
 
@@ -351,11 +407,31 @@ static uint64_t sys_brk(uint64_t brk, uint64_t unused1, uint64_t unused2, uint64
     (void)unused1; (void)unused2; (void)unused3; (void)unused4;
     struct process *proc = get_current_process();
 
+    // Round requested brk to page boundary
+    uint64_t brk_page = (brk + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+
     if (brk == 0) return proc->brk_end;
 
-    if (brk > proc->brk_end) {
-        uint64_t old_page_end = (proc->brk_end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-        uint64_t new_end = (brk + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    // Handle shrinking or setting to smaller value
+    if (brk_page <= proc->brk_end) {
+        proc->brk_end = brk_page;
+        return brk;
+    }
+
+    // Need to expand - map pages from current brk_end to brk_page
+    // NOTE: We start from proc->brk_end (not brk_start) so retries continue
+    // where we left off instead of remapping from the beginning.
+    uint64_t alloc_start = proc->brk_end;
+    uint64_t alloc_end = brk_page;
+
+    if (alloc_end > alloc_start) {
+        // Map one extra page beyond brk_page to serve as guard page and catch
+        // any out-of-bounds writes from user code that go one byte past the
+        // end of the heap.
+        uint64_t map_limit = brk_page + PAGE_SIZE;
+
+        printk(KERN_INFO "sys_brk: expanding from %lx to %lx (guard to %lx)\n",
+               alloc_start, brk_page, map_limit);
 
         uint64_t old_cr3;
         __asm__ volatile("mov %%cr3, %0" : "=r"(old_cr3));
@@ -363,14 +439,32 @@ static uint64_t sys_brk(uint64_t brk, uint64_t unused1, uint64_t unused2, uint64
             __asm__ volatile("mov %0, %%cr3" :: "r"(proc->cr3) : "memory");
         }
 
-        for (uint64_t a = old_page_end; a < new_end; a += PAGE_SIZE) {
-            vmm_map_page(0, a, PAGE_DEMAND | PAGE_WRITE | PAGE_USER);
+        for (uint64_t a = alloc_start; a < map_limit; a += PAGE_SIZE) {
+            uint64_t phys = (uint64_t)pmm_alloc_page();
+            if (!phys) {
+                // Partial allocation: update brk_end to how far we got so
+                // that the next sys_sbrk call continues from here, not from
+                // a stale old brk_end value. Return the new brk_end so the
+                // caller can proceed with whatever was actually allocated.
+                printk(KERN_WARN "sys_brk: partially allocated %lu pages, %lu requested\n",
+                       (a - alloc_start) / PAGE_SIZE, (map_limit - alloc_start) / PAGE_SIZE);
+                uint64_t actual_end = a; // One page before the failed one
+                proc->brk_end = actual_end;
+                if (proc->cr3 != old_cr3) {
+                    __asm__ volatile("mov %0, %%cr3" :: "r"(old_cr3) : "memory");
+                }
+                return actual_end;
+            }
+            vmm_map_page(phys, a, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+            // Use kernel identity mapping to zero the page
+            void *zero_addr = (void *)(0xFFFFFFFF80000000ULL + phys);
+            memset(zero_addr, 0, PAGE_SIZE);
         }
 
         if (proc->cr3 != old_cr3) {
             __asm__ volatile("mov %0, %%cr3" :: "r"(old_cr3) : "memory");
         }
-        proc->brk_end = new_end;
+        proc->brk_end = brk_page;
     }
     return brk;
 }
@@ -435,13 +529,13 @@ static uint64_t sys_pipe(uint64_t pipefd, uint64_t unused1, uint64_t unused2, ui
     struct file *rfile = kmalloc(sizeof(struct file));
     rfile->node = pipe_node;
     rfile->offset = 0;
-    rfile->flags = O_RDONLY;
+    rfile->flags = SB_MODE_PULL;
     rfile->refcount = 0;
 
     struct file *wfile = kmalloc(sizeof(struct file));
     wfile->node = pipe_node;
     wfile->offset = 0;
-    wfile->flags = O_WRONLY;
+    wfile->flags = SB_MODE_PUSH;
     wfile->refcount = 0;
 
     struct process *proc = get_current_process();
@@ -494,7 +588,7 @@ static uint64_t sys_getpid(uint64_t unused1, uint64_t unused2, uint64_t unused3,
     return get_current_process()->pid;
 }
 
-static uint64_t sys_fork(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+static uint64_t sb_replicate(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
     (void)unused1; (void)unused2; (void)unused3; (void)unused4; (void)unused5;
     struct process *child = task_fork();
     if (!child) return -EAGAIN;
@@ -505,7 +599,7 @@ static uint64_t sys_fork(uint64_t unused1, uint64_t unused2, uint64_t unused3, u
     return child_pid;
 }
 
-static uint64_t sys_execve(uint64_t filename, uint64_t argv, uint64_t envp, uint64_t unused1, uint64_t unused2) {
+static uint64_t sb_morph(uint64_t filename, uint64_t argv, uint64_t envp, uint64_t unused1, uint64_t unused2) {
     (void)unused1; (void)unused2;
     if (!is_user_range(filename, 1)) return -EFAULT;
 
@@ -582,30 +676,32 @@ static uint64_t sys_execve(uint64_t filename, uint64_t argv, uint64_t envp, uint
     return 0;
 }
 
-static uint64_t sys_exit(uint64_t status, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+static uint64_t sb_terminate(uint64_t status, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
     (void)unused1; (void)unused2; (void)unused3; (void)unused4;
     task_exit((int)status);
     return 0;
 }
 
 static uint64_t sys_wait4(uint64_t pid, uint64_t wstatus, uint64_t options, uint64_t unused1, uint64_t unused2) {
-    (void)options; (void)unused1; (void)unused2;
+    (void)unused1; (void)unused2;
     struct process *parent = get_current_process();
 
     while (1) {
         struct process *p = proc_list;
         if (!p) return -ECHILD;
         int found_child = 0;
+        int found_live_child = 0;
         do {
             if (p->ppid == parent->pid) {
                 if (pid == 0 || pid == (uint64_t)(-1) || p->pid == (uint32_t)pid || pid == (uint64_t)(-2)) {
+                    found_child = 1;
                     if (p->state == TASK_ZOMBIE) {
                         if (wstatus && is_user_range(wstatus, sizeof(int))) {
-                            *(int*)wstatus = p->exit_status & 0xFF;
+                            int ws = (p->exit_status & 0xFF);
+                            *(int*)wstatus = ws;
                         }
                         uint32_t child_pid = p->pid;
 
-                        // Remove from process list
                         struct process *prev = p;
                         while (prev->next != p) prev = prev->next;
                         prev->next = p->next;
@@ -618,8 +714,9 @@ static uint64_t sys_wait4(uint64_t pid, uint64_t wstatus, uint64_t options, uint
                         extern slab_cache_t *process_cache;
                         slab_free(process_cache, p);
                         return child_pid;
-                    } else {
-                        found_child = 1;
+                    }
+                    if (p->state == TASK_RUNNING || p->state == TASK_READY || p->state == TASK_BLOCKED) {
+                        found_live_child = 1;
                     }
                 }
             }
@@ -627,6 +724,8 @@ static uint64_t sys_wait4(uint64_t pid, uint64_t wstatus, uint64_t options, uint
         } while (p != proc_list);
 
         if (!found_child) return -ECHILD;
+        if (options & WNOHANG) return 0;
+        if (!found_live_child) return -ECHILD;
         parent->state = TASK_BLOCKED;
         yield();
     }
@@ -647,19 +746,14 @@ static uint64_t sys_kill(uint64_t pid, uint64_t sig, uint64_t unused1, uint64_t 
         target->state = TASK_ZOMBIE;
         // Wake up parent if waiting
         struct process *parent = proc_find(target->ppid);
-        if (parent && parent->state == TASK_BLOCKED) parent->state = TASK_READY;
+        if (parent && parent->state == TASK_BLOCKED) {
+            parent->state = TASK_READY;
+            sched_enqueue(parent);
+        }
         return 0;
     }
 
-    if (sig == SIGTERM) {
-        target->exit_status = 128 + sig;
-        target->state = TASK_ZOMBIE;
-        struct process *parent = proc_find(target->ppid);
-        if (parent && parent->state == TASK_BLOCKED) parent->state = TASK_READY;
-        return 0;
-    }
-
-    target->sig_pending |= (1ULL << (sig - 1));
+    send_signal(pid, sig);
     return 0;
 }
 
@@ -715,10 +809,15 @@ static uint64_t sys_chdir(uint64_t path, uint64_t unused1, uint64_t unused2, uin
     name[127] = 0;
 
     struct process *proc = get_current_process();
-    extern vfs_node_t *fs_root;
-    vfs_node_t *node = vfs_finddir(proc->cwd, name);
-    if (!node) {
-        node = vfs_finddir(fs_root, name);
+    char last_comp[128];
+    vfs_node_t *dir = vfs_resolve_path(name, proc->cwd, last_comp);
+    if (!dir) return -ENOENT;
+
+    vfs_node_t *node;
+    if (last_comp[0] == 0) {
+        node = dir;
+    } else {
+        node = vfs_finddir(dir, last_comp);
     }
     if (!node) return -ENOENT;
     // FS_DIRECTORY is 0x02
@@ -789,7 +888,7 @@ static uint64_t sys_clock_gettime(uint64_t clk_id, uint64_t tp, uint64_t unused1
     return 0;
 }
 
-static uint64_t sys_exit_group(uint64_t status, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+static uint64_t sb_terminate_group(uint64_t status, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
     (void)unused1; (void)unused2; (void)unused3; (void)unused4;
     task_exit((int)status);
     return 0;
@@ -823,15 +922,14 @@ static uint64_t sys_mem_info(uint64_t buf, uint64_t unused1, uint64_t unused2, u
 }
 
 static uint64_t sys_mkdir(uint64_t path, uint64_t mode, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
-    (void)mode; (void)unused1; (void)unused2; (void)unused3;
+    (void)unused1; (void)unused2; (void)unused3;
     if (!is_user_range(path, 1)) return -EFAULT;
     char name[128];
     int i = 0;
     while (((char*)path)[i] && i < 127) { name[i] = ((char*)path)[i]; i++; }
     name[i] = 0;
-    // Try tmpfs first
-    if (tmpfs_mkdir(name) == 0) return 0;
-    return -ENOENT;
+    struct process *proc = get_current_process();
+    return vfs_mkdir(name, proc->cwd, mode);
 }
 
 static uint64_t sys_rmdir(uint64_t path, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
@@ -841,8 +939,8 @@ static uint64_t sys_rmdir(uint64_t path, uint64_t unused1, uint64_t unused2, uin
     int i = 0;
     while (((char*)path)[i] && i < 127) { name[i] = ((char*)path)[i]; i++; }
     name[i] = 0;
-    if (tmpfs_rmdir(name) == 0) return 0;
-    return -ENOENT;
+    struct process *proc = get_current_process();
+    return vfs_rmdir(name, proc->cwd);
 }
 
 static uint64_t sys_unlink(uint64_t path, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
@@ -852,8 +950,8 @@ static uint64_t sys_unlink(uint64_t path, uint64_t unused1, uint64_t unused2, ui
     int i = 0;
     while (((char*)path)[i] && i < 127) { name[i] = ((char*)path)[i]; i++; }
     name[i] = 0;
-    if (tmpfs_unlink(name) == 0) return 0;
-    return -ENOENT;
+    struct process *proc = get_current_process();
+    return vfs_unlink(name, proc->cwd);
 }
 
 static uint64_t sys_rename(uint64_t oldpath, uint64_t newpath, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
@@ -930,26 +1028,26 @@ static uint64_t sys_gettimeofday(uint64_t tv, uint64_t tz, uint64_t unused1, uin
     return -EFAULT;
 }
 
-static uint64_t sys_socket_wrapper(uint64_t domain, uint64_t type, uint64_t protocol, uint64_t u1, uint64_t u2) {
-    (void)u1; (void)u2; return sys_socket((int)domain, (int)type, (int)protocol);
+static uint64_t sb_socket_create_wrapper(uint64_t domain, uint64_t type, uint64_t protocol, uint64_t u1, uint64_t u2) {
+    (void)u1; (void)u2; return sb_socket_create((int)domain, (int)type, (int)protocol);
 }
-static uint64_t sys_connect_wrapper(uint64_t sockfd, uint64_t addr, uint64_t addrlen, uint64_t u1, uint64_t u2) {
-    (void)u1; (void)u2; return sys_connect((int)sockfd, (const void*)addr, (size_t)addrlen);
+static uint64_t sb_socket_connect_wrapper(uint64_t sockfd, uint64_t addr, uint64_t addrlen, uint64_t u1, uint64_t u2) {
+    (void)u1; (void)u2; return sb_socket_connect((int)sockfd, (const void*)addr, (size_t)addrlen);
 }
-static uint64_t sys_bind_wrapper(uint64_t sockfd, uint64_t addr, uint64_t addrlen, uint64_t u1, uint64_t u2) {
-    (void)u1; (void)u2; return sys_bind((int)sockfd, (const void*)addr, (size_t)addrlen);
+static uint64_t sb_socket_bind_wrapper(uint64_t sockfd, uint64_t addr, uint64_t addrlen, uint64_t u1, uint64_t u2) {
+    (void)u1; (void)u2; return sb_socket_bind((int)sockfd, (const void*)addr, (size_t)addrlen);
 }
-static uint64_t sys_listen_wrapper(uint64_t sockfd, uint64_t backlog, uint64_t u1, uint64_t u2, uint64_t u3) {
-    (void)u1; (void)u2; (void)u3; return sys_listen((int)sockfd, (int)backlog);
+static uint64_t sb_socket_listen_wrapper(uint64_t sockfd, uint64_t backlog, uint64_t u1, uint64_t u2, uint64_t u3) {
+    (void)u1; (void)u2; (void)u3; return sb_socket_listen((int)sockfd, (int)backlog);
 }
-static uint64_t sys_accept_wrapper(uint64_t sockfd, uint64_t addr, uint64_t addrlen, uint64_t u1, uint64_t u2) {
-    (void)u1; (void)u2; return sys_accept((int)sockfd, (void*)addr, (size_t*)addrlen);
+static uint64_t sb_socket_accept_wrapper(uint64_t sockfd, uint64_t addr, uint64_t addrlen, uint64_t u1, uint64_t u2) {
+    (void)u1; (void)u2; return sb_socket_accept((int)sockfd, (void*)addr, (size_t*)addrlen);
 }
-static uint64_t sys_sendto_wrapper(uint64_t sockfd, uint64_t buf, uint64_t len, uint64_t flags, uint64_t u1) {
-    (void)u1; (void)flags; return sys_write(sockfd, buf, len, 0, 0); // Simplified
+static uint64_t sb_socket_sendto_wrapper(uint64_t sockfd, uint64_t buf, uint64_t len, uint64_t flags, uint64_t u1) {
+    (void)u1; (void)flags; return sb_push(sockfd, buf, len, 0, 0); // Simplified
 }
-static uint64_t sys_recvfrom_wrapper(uint64_t sockfd, uint64_t buf, uint64_t len, uint64_t flags, uint64_t u1) {
-    (void)u1; (void)flags; return sys_read(sockfd, buf, len, 0, 0); // Simplified
+static uint64_t sb_socket_recvfrom_wrapper(uint64_t sockfd, uint64_t buf, uint64_t len, uint64_t flags, uint64_t u1) {
+    (void)u1; (void)flags; return sb_pull(sockfd, buf, len, 0, 0); // Simplified
 }
 
 static uint64_t sys_getpriority(uint64_t which, uint64_t who, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
@@ -1030,15 +1128,15 @@ static uint64_t sys_mount(uint64_t source, uint64_t target, uint64_t fstype, uin
     fsname[i] = 0;
     if (strcmp(fsname, "tmpfs") == 0) {
         extern vfs_node_t *tmpfs_root;
-        if (tmpfs_root) { vfs_mount(target_path, tmpfs_root); return 0; }
+        if (tmpfs_root) { vfs_mount(target_path, tmpfs_root, flags); return 0; }
     }
     if (strcmp(fsname, "devfs") == 0) {
         extern vfs_node_t *devfs_root;
-        if (devfs_root) { vfs_mount(target_path, devfs_root); return 0; }
+        if (devfs_root) { vfs_mount(target_path, devfs_root, flags); return 0; }
     }
     if (strcmp(fsname, "proc") == 0) {
         extern vfs_node_t *procfs_root;
-        if (procfs_root) { vfs_mount(target_path, procfs_root); return 0; }
+        if (procfs_root) { vfs_mount(target_path, procfs_root, flags); return 0; }
     }
     return -EINVAL;
 }
@@ -1054,11 +1152,9 @@ static uint64_t sys_umount2(uint64_t target, uint64_t flags, uint64_t unused1, u
 
 static uint64_t sys_fb_mmap(uint64_t u1, uint64_t u2, uint64_t u3, uint64_t u4, uint64_t u5) {
     (void)u1; (void)u2; (void)u3; (void)u4; (void)u5;
-    extern uint8_t *fb_get_addr(void);
-    uint8_t *fb_addr = fb_get_addr();
-    if (!fb_addr) return -ENODEV;
-
-    uint64_t fb_phys = fb_addr - 0xFFFFFFFF80000000ULL;
+    extern uint64_t fb_get_phys(void);
+    uint64_t fb_phys = fb_get_phys();
+    if (!fb_phys) return -ENODEV;
     extern uint32_t fb_get_width(void);
     extern uint32_t fb_get_height(void);
     extern uint32_t fb_get_pitch(void);
@@ -1096,11 +1192,56 @@ static uint64_t sys_fb_info(uint64_t buf, uint64_t u1, uint64_t u2, uint64_t u3,
     return 0;
 }
 
+static uint64_t sys_chmod(uint64_t pathname, uint64_t mode, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+    (void)unused1; (void)unused2; (void)unused3;
+    if (!is_user_range(pathname, 1)) return -EFAULT;
+    char name[128];
+    for (int i = 0; i < 127; i++) {
+        name[i] = ((char*)pathname)[i];
+        if (!name[i]) break;
+    }
+    name[127] = 0;
+    
+    struct process *proc = get_current_process();
+    extern vfs_node_t *fs_root;
+    vfs_node_t *node = vfs_finddir(proc->cwd, name);
+    if (!node) node = vfs_finddir(fs_root, name);
+    if (!node) return -ENOENT;
+    
+    if (proc->uid != 0 && proc->uid != node->uid) return -EPERM;
+    
+    node->mask = (mode & 07777); // Update permissions
+    return 0;
+}
+
+static uint64_t sys_chown(uint64_t pathname, uint64_t owner, uint64_t group, uint64_t unused1, uint64_t unused2) {
+    (void)unused1; (void)unused2;
+    if (!is_user_range(pathname, 1)) return -EFAULT;
+    char name[128];
+    for (int i = 0; i < 127; i++) {
+        name[i] = ((char*)pathname)[i];
+        if (!name[i]) break;
+    }
+    name[127] = 0;
+    
+    struct process *proc = get_current_process();
+    extern vfs_node_t *fs_root;
+    vfs_node_t *node = vfs_finddir(proc->cwd, name);
+    if (!node) node = vfs_finddir(fs_root, name);
+    if (!node) return -ENOENT;
+    
+    if (proc->uid != 0) return -EPERM; // Only root can chown
+    
+    if ((int32_t)owner != -1) node->uid = owner;
+    if ((int32_t)group != -1) node->gid = group;
+    return 0;
+}
+
 static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) = {
-    [SYS_READ]         = sys_read,
-    [SYS_WRITE]        = sys_write,
-    [SYS_OPEN]         = sys_open,
-    [SYS_CLOSE]        = sys_close,
+    [SB_PULL_DATA]         = sb_pull,
+    [SB_PUSH_DATA]        = sb_push,
+    [SB_ACQUIRE]         = sb_acquire,
+    [SB_RELEASE]        = sb_release,
     [SYS_STAT]         = sys_stat,
     [SYS_FSTAT]        = sys_fstat,
     [SYS_LSEEK]        = sys_lseek,
@@ -1108,13 +1249,13 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_MPROTECT]     = sys_mprotect,
     [SYS_MUNMAP]       = sys_munmap,
     [SYS_BRK]          = sys_brk,
-    [SYS_SOCKET]       = sys_socket_wrapper,
-    [SYS_CONNECT]      = sys_connect_wrapper,
-    [SYS_ACCEPT]       = sys_accept_wrapper,
-    [SYS_SENDTO]       = sys_sendto_wrapper,
-    [SYS_RECVFROM]     = sys_recvfrom_wrapper,
-    [SYS_BIND]         = sys_bind_wrapper,
-    [SYS_LISTEN]       = sys_listen_wrapper,
+    [SB_SOCKET_CREATE]       = sb_socket_create_wrapper,
+    [SB_SOCKET_CONNECT]      = sb_socket_connect_wrapper,
+    [SB_SOCKET_ACCEPT]       = sb_socket_accept_wrapper,
+    [SB_SOCKET_SENDTO]       = sb_socket_sendto_wrapper,
+    [SB_SOCKET_RECVFROM]     = sb_socket_recvfrom_wrapper,
+    [SB_SOCKET_BIND]         = sb_socket_bind_wrapper,
+    [SB_SOCKET_LISTEN]       = sb_socket_listen_wrapper,
     [SYS_RT_SIGACTION]   = sys_rt_sigaction,
     [SYS_RT_SIGPROCMASK] = sys_rt_sigprocmask,
     [SYS_RT_SIGRETURN]   = sys_rt_sigreturn,
@@ -1125,9 +1266,9 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_DUP2]         = sys_dup2,
     [SYS_NANOSLEEP]    = sys_nanosleep,
     [SYS_GETPID]       = sys_getpid,
-    [SYS_FORK]         = sys_fork,
-    [SYS_EXECVE]       = sys_execve,
-    [SYS_EXIT]         = sys_exit,
+    [SB_REPLICATE]         = sb_replicate,
+    [SB_MORPH]       = sb_morph,
+    [SB_TERMINATE]         = sb_terminate,
     [SYS_WAIT4]        = sys_wait4,
     [SYS_KILL]         = sys_kill,
     [SYS_UNAME]        = sys_uname,
@@ -1143,7 +1284,7 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_GETTID]       = sys_gettid,
     [SYS_TIME]         = sys_time,
     [SYS_CLOCK_GETTIME]  = sys_clock_gettime,
-    [SYS_EXIT_GROUP]   = sys_exit_group,
+    [SB_TERMINATE_GROUP]   = sb_terminate_group,
     [SYS_TIMES]        = sys_times,
     [SYS_PROC_INFO]    = sys_proc_info,
     [SYS_MEM_INFO]     = sys_mem_info,
@@ -1151,6 +1292,9 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_MKDIR]        = sys_mkdir,
     [SYS_RMDIR]        = sys_rmdir,
     [SYS_UNLINK]       = sys_unlink,
+    [90]               = sys_chmod,
+    [92]               = sys_chown,
+    [100]              = sys_times,
     [SYS_RENAME]       = sys_rename,
     [SYS_GETTIMEOFDAY] = sys_gettimeofday,
     [SYS_SETUID]       = sys_setuid,
@@ -1167,8 +1311,9 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_MOUNT]        = sys_mount,
     [SYS_UMOUNT2]      = sys_umount2,
     [SYS_FB_MMAP]      = sys_fb_mmap,
-    [SYS_INPUT_FD]     = (void*)0,  // not needed — /dev/input used instead
     [SYS_FB_INFO]      = sys_fb_info,
+    [SB_IPC_CALL]        = sys_sb_ipc_call,
+    [SB_IPC_REPLY_WAIT]  = sys_sb_ipc_reply_wait,
 };
 
 #define SYSCALL_COUNT (sizeof(syscall_table) / sizeof(syscall_table[0]))
