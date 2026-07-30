@@ -16,5 +16,8 @@
 qemu_out.log
 qemu.log
 
+# Build output directories
+isodir/
+
 # Tool config
 .mimocode/
