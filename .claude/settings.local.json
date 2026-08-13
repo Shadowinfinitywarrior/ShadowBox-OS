@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/darkdevil404/.claude/skills/**)",
+      "Read(//home/darkdevil404/.claude/skills/graphify/**)"
+    ]
+  },
+  "skillOverrides": {}
+}

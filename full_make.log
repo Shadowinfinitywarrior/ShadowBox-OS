@@ -1,0 +1,1281 @@
+x86_64-linux-gnu-gcc -Wa,--divide -Iinclude -D__ASSEMBLY__ -c arch/x86_64/boot/ap_trampoline.S -o arch/x86_64/boot/ap_trampoline.o
+x86_64-linux-gnu-gcc -Wa,--divide -Iinclude -D__ASSEMBLY__ -c arch/x86_64/boot/head.S -o arch/x86_64/boot/head.o
+x86_64-linux-gnu-gcc -Wa,--divide -Iinclude -D__ASSEMBLY__ -c arch/x86_64/boot/idt.S -o arch/x86_64/boot/idt.o
+x86_64-linux-gnu-gcc -Wa,--divide -Iinclude -D__ASSEMBLY__ -c arch/x86_64/boot/isr_stubs.S -o arch/x86_64/boot/isr_stubs.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/acpi.c -o arch/x86_64/drivers/acpi.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/ahci.c -o arch/x86_64/drivers/ahci.o
+arch/x86_64/drivers/ahci.c: In function ‘port_rebase’:
+arch/x86_64/drivers/ahci.c:53:45: warning: unused parameter ‘portno’ [-Wunused-parameter]
+   53 | static void port_rebase(HBA_PORT *port, int portno) {
+      |                                         ~~~~^~~~~~
+arch/x86_64/drivers/ahci.c: In function ‘ahci_init’:
+arch/x86_64/drivers/ahci.c:249:38: warning: assignment to ‘int (*)(struct block_device *, uint64_t,  uint32_t,  void *)’ {aka ‘int (*)(struct block_device *, long unsigned int,  unsigned int,  void *)’} from incompatible pointer type ‘int (*)(block_device_t *, uint64_t,  uint32_t,  const void *)’ {aka ‘int (*)(struct block_device *, long unsigned int,  unsigned int,  const void *)’} [-Wincompatible-pointer-types]
+  249 |                 ahci_dev.write_block = ahci_write;
+      |                                      ^
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/apic.c -o arch/x86_64/drivers/apic.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/e1000.c -o arch/x86_64/drivers/e1000.o
+arch/x86_64/drivers/e1000.c: In function ‘e1000_send_packet’:
+arch/x86_64/drivers/e1000.c:46:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+   46 |     for (int i = 0; i < len; i++)
+      |                       ^
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/fb.c -o arch/x86_64/drivers/fb.o
+arch/x86_64/drivers/fb.c:86: warning: "FONT_H" redefined
+   86 | #define FONT_H 16
+      | 
+In file included from arch/x86_64/drivers/fb.c:2:
+include/font.h:2: note: this is the location of the previous definition
+    2 | #define FONT_H
+      | 
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/fb_double.c -o arch/x86_64/drivers/fb_double.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/hda.c -o arch/x86_64/drivers/hda.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/keyboard.c -o arch/x86_64/drivers/keyboard.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/mouse.c -o arch/x86_64/drivers/mouse.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/pci.c -o arch/x86_64/drivers/pci.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/pic.c -o arch/x86_64/drivers/pic.o
+arch/x86_64/drivers/pic.c: In function ‘pic_init’:
+arch/x86_64/drivers/pic.c:22:17: warning: variable ‘a2’ set but not used [-Wunused-but-set-variable]
+   22 |     uint8_t a1, a2;
+      |                 ^~
+arch/x86_64/drivers/pic.c:22:13: warning: variable ‘a1’ set but not used [-Wunused-but-set-variable]
+   22 |     uint8_t a1, a2;
+      |             ^~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/pit.c -o arch/x86_64/drivers/pit.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/ramdisk.c -o arch/x86_64/drivers/ramdisk.o
+arch/x86_64/drivers/ramdisk.c: In function ‘ramdisk_init’:
+arch/x86_64/drivers/ramdisk.c:41:29: warning: assignment to ‘int (*)(struct block_device *, uint64_t,  uint32_t,  void *)’ {aka ‘int (*)(struct block_device *, long unsigned int,  unsigned int,  void *)’} from incompatible pointer type ‘int (*)(block_device_t *, uint64_t,  uint32_t,  const void *)’ {aka ‘int (*)(struct block_device *, long unsigned int,  unsigned int,  const void *)’} [-Wincompatible-pointer-types]
+   41 |     ramdisk_dev.write_block = ramdisk_write;
+      |                             ^
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/rtc.c -o arch/x86_64/drivers/rtc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/rtl8139.c -o arch/x86_64/drivers/rtl8139.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/serial.c -o arch/x86_64/drivers/serial.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/tickless.c -o arch/x86_64/drivers/tickless.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/tty.c -o arch/x86_64/drivers/tty.o
+arch/x86_64/drivers/tty.c: In function ‘tty_init’:
+arch/x86_64/drivers/tty.c:102:21: warning: assignment to ‘write_type_t’ {aka ‘unsigned int (*)(struct vfs_node *, unsigned int,  unsigned int,  unsigned char *)’} from incompatible pointer type ‘uint32_t (*)(vfs_node_t *, uint32_t,  uint32_t,  const uint8_t *)’ {aka ‘unsigned int (*)(struct vfs_node *, unsigned int,  unsigned int,  const unsigned char *)’} [-Wincompatible-pointer-types]
+  102 |     tty_node->write = tty_write;
+      |                     ^
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/usb.c -o arch/x86_64/drivers/usb.o
+In file included from arch/x86_64/drivers/usb.c:2:
+arch/x86_64/drivers/usb.c: In function ‘usb_init’:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/drivers/usb.c:37:28: note: in expansion of macro ‘KERN_INFO’
+   37 |                     printk(KERN_INFO "USB: xHCI Base Address (MMIO): 0x%llx\n", bar0);
+      |                            ^~~~~~~~~
+arch/x86_64/drivers/usb.c:37:75: note: format string is defined here
+   37 |                     printk(KERN_INFO "USB: xHCI Base Address (MMIO): 0x%llx\n", bar0);
+      |                                                                        ~~~^
+      |                                                                           |
+      |                                                                           long long unsigned int
+      |                                                                        %lx
+In file included from arch/x86_64/drivers/usb.c:2:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/drivers/usb.c:65:28: note: in expansion of macro ‘KERN_INFO’
+   65 |                     printk(KERN_INFO "USB: xHCI DCBAA (0x%llx) and Command Ring (0x%llx) initialized\n", dcbaa_phys, cmd_ring_phys);
+      |                            ^~~~~~~~~
+arch/x86_64/drivers/usb.c:65:61: note: format string is defined here
+   65 |                     printk(KERN_INFO "USB: xHCI DCBAA (0x%llx) and Command Ring (0x%llx) initialized\n", dcbaa_phys, cmd_ring_phys);
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+In file included from arch/x86_64/drivers/usb.c:2:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/drivers/usb.c:65:28: note: in expansion of macro ‘KERN_INFO’
+   65 |                     printk(KERN_INFO "USB: xHCI DCBAA (0x%llx) and Command Ring (0x%llx) initialized\n", dcbaa_phys, cmd_ring_phys);
+      |                            ^~~~~~~~~
+arch/x86_64/drivers/usb.c:65:87: note: format string is defined here
+   65 |                     printk(KERN_INFO "USB: xHCI DCBAA (0x%llx) and Command Ring (0x%llx) initialized\n", dcbaa_phys, cmd_ring_phys);
+      |                                                                                    ~~~^
+      |                                                                                       |
+      |                                                                                       long long unsigned int
+      |                                                                                    %lx
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/drivers/virtio_net.c -o arch/x86_64/drivers/virtio_net.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/kernel/gdt.c -o arch/x86_64/kernel/gdt.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/kernel/idt.c -o arch/x86_64/kernel/idt.o
+In file included from arch/x86_64/kernel/idt.c:2:
+arch/x86_64/kernel/idt.c: In function ‘page_fault_handler’:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:76:12: note: in expansion of macro ‘KERN_ERR’
+   76 |     printk(KERN_ERR "PAGE FAULT at %llx, RIP=%llx, error=%llx, present=%d, write=%d\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:76:39: note: format string is defined here
+   76 |     printk(KERN_ERR "PAGE FAULT at %llx, RIP=%llx, error=%llx, present=%d, write=%d\n",
+      |                                    ~~~^
+      |                                       |
+      |                                       long long unsigned int
+      |                                    %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:76:12: note: in expansion of macro ‘KERN_ERR’
+   76 |     printk(KERN_ERR "PAGE FAULT at %llx, RIP=%llx, error=%llx, present=%d, write=%d\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:76:49: note: format string is defined here
+   76 |     printk(KERN_ERR "PAGE FAULT at %llx, RIP=%llx, error=%llx, present=%d, write=%d\n",
+      |                                              ~~~^
+      |                                                 |
+      |                                                 long long unsigned int
+      |                                              %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 4 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:76:12: note: in expansion of macro ‘KERN_ERR’
+   76 |     printk(KERN_ERR "PAGE FAULT at %llx, RIP=%llx, error=%llx, present=%d, write=%d\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:76:61: note: format string is defined here
+   76 |     printk(KERN_ERR "PAGE FAULT at %llx, RIP=%llx, error=%llx, present=%d, write=%d\n",
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:78:12: note: in expansion of macro ‘KERN_ERR’
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:78:28: note: format string is defined here
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |                         ~~~^
+      |                            |
+      |                            long long unsigned int
+      |                         %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:78:12: note: in expansion of macro ‘KERN_ERR’
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:78:40: note: format string is defined here
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |                                     ~~~^
+      |                                        |
+      |                                        long long unsigned int
+      |                                     %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 4 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:78:12: note: in expansion of macro ‘KERN_ERR’
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:78:49: note: format string is defined here
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |                                              ~~~^
+      |                                                 |
+      |                                                 long long unsigned int
+      |                                              %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 5 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:78:12: note: in expansion of macro ‘KERN_ERR’
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |            ^~~~~~~~
+arch/x86_64/kernel/idt.c:78:57: note: format string is defined here
+   78 |     printk(KERN_ERR "CS=%llx RFLAGS=%llx RSP=%llx SS=%llx\n",
+      |                                                      ~~~^
+      |                                                         |
+      |                                                         long long unsigned int
+      |                                                      %lx
+arch/x86_64/kernel/idt.c:82:109: warning: operand of ‘?:’ changes signedness from ‘int’ to ‘uint32_t’ {aka ‘unsigned int’} due to unsignedness of other operand [-Wsign-compare]
+   82 |     printk(KERN_ERR "PF: cur_task=%p pid=%d state=%d kstack=%lx cr3=%lx\n", (void*)proc, proc ? proc->pid : -1, proc ? proc->state : -1, proc ? proc->kstack : 0, proc ? proc->cr3 : 0);
+      |                                                                                                             ^~
+In file included from arch/x86_64/kernel/idt.c:2:
+arch/x86_64/kernel/idt.c: In function ‘isr_handler’:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:101:16: note: in expansion of macro ‘KERN_ERR’
+  101 |         printk(KERN_ERR "EXCEPTION: %llx, ERR_CODE: %llx\n", regs->int_no, regs->err_code);
+      |                ^~~~~~~~
+arch/x86_64/kernel/idt.c:101:40: note: format string is defined here
+  101 |         printk(KERN_ERR "EXCEPTION: %llx, ERR_CODE: %llx\n", regs->int_no, regs->err_code);
+      |                                     ~~~^
+      |                                        |
+      |                                        long long unsigned int
+      |                                     %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:101:16: note: in expansion of macro ‘KERN_ERR’
+  101 |         printk(KERN_ERR "EXCEPTION: %llx, ERR_CODE: %llx\n", regs->int_no, regs->err_code);
+      |                ^~~~~~~~
+arch/x86_64/kernel/idt.c:101:56: note: format string is defined here
+  101 |         printk(KERN_ERR "EXCEPTION: %llx, ERR_CODE: %llx\n", regs->int_no, regs->err_code);
+      |                                                     ~~~^
+      |                                                        |
+      |                                                        long long unsigned int
+      |                                                     %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:102:16: note: in expansion of macro ‘KERN_ERR’
+  102 |         printk(KERN_ERR "RIP: %llx, CR2: %llx\n", regs->rip, cr2);
+      |                ^~~~~~~~
+arch/x86_64/kernel/idt.c:102:34: note: format string is defined here
+  102 |         printk(KERN_ERR "RIP: %llx, CR2: %llx\n", regs->rip, cr2);
+      |                               ~~~^
+      |                                  |
+      |                                  long long unsigned int
+      |                               %lx
+In file included from arch/x86_64/kernel/idt.c:2:
+include/kernel.h:19:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   19 | #define KERN_ERR     "<3>"
+      |                      ^~~~~
+arch/x86_64/kernel/idt.c:102:16: note: in expansion of macro ‘KERN_ERR’
+  102 |         printk(KERN_ERR "RIP: %llx, CR2: %llx\n", regs->rip, cr2);
+      |                ^~~~~~~~
+arch/x86_64/kernel/idt.c:102:45: note: format string is defined here
+  102 |         printk(KERN_ERR "RIP: %llx, CR2: %llx\n", regs->rip, cr2);
+      |                                          ~~~^
+      |                                             |
+      |                                             long long unsigned int
+      |                                          %lx
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/kernel/smp.c -o arch/x86_64/kernel/smp.o
+x86_64-linux-gnu-gcc -Wa,--divide -Iinclude -D__ASSEMBLY__ -c arch/x86_64/kernel/switch.S -o arch/x86_64/kernel/switch.o
+x86_64-linux-gnu-gcc -Wa,--divide -Iinclude -D__ASSEMBLY__ -c arch/x86_64/kernel/syscall_entry.S -o arch/x86_64/kernel/syscall_entry.o
+arch/x86_64/kernel/syscall_entry.S: Assembler messages:
+arch/x86_64/kernel/syscall_entry.S:43: Warning: no instruction mnemonic suffix given and no register operands; using default for `cmp'
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/aslr.c -o arch/x86_64/mm/aslr.o
+In file included from arch/x86_64/mm/aslr.c:2:
+arch/x86_64/mm/aslr.c: In function ‘aslr_init’:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/mm/aslr.c:48:12: note: in expansion of macro ‘KERN_INFO’
+   48 |     printk(KERN_INFO "ASLR: initialized (kernel offset = %llx)\n", kernel_offset);
+      |            ^~~~~~~~~
+arch/x86_64/mm/aslr.c:48:61: note: format string is defined here
+   48 |     printk(KERN_INFO "ASLR: initialized (kernel offset = %llx)\n", kernel_offset);
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/buddy.c -o arch/x86_64/mm/buddy.o
+In file included from arch/x86_64/mm/buddy.c:2:
+arch/x86_64/mm/buddy.c: In function ‘buddy_init’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/mm/buddy.c:41:12: note: in expansion of macro ‘KERN_INFO’
+   41 |     printk(KERN_INFO "BUDDY: initialized with %llu pages free\n", free_page_count);
+      |            ^~~~~~~~~
+arch/x86_64/mm/buddy.c:41:50: note: format string is defined here
+   41 |     printk(KERN_INFO "BUDDY: initialized with %llu pages free\n", free_page_count);
+      |                                               ~~~^
+      |                                                  |
+      |                                                  long long unsigned int
+      |                                               %lu
+arch/x86_64/mm/buddy.c: In function ‘buddy_alloc’:
+arch/x86_64/mm/buddy.c:74:26: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   74 |     while (current_order > order) {
+      |                          ^
+arch/x86_64/mm/buddy.c: In function ‘buddy_free’:
+arch/x86_64/mm/buddy.c:100:42: warning: comparison of integer expressions of different signedness: ‘unsigned int’ and ‘int’ [-Wsign-compare]
+  100 |         if (!buddy->free || buddy->order != current_order) break;
+      |                                          ^~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/malloc.c -o arch/x86_64/mm/malloc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/mmap.c -o arch/x86_64/mm/mmap.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/pmm.c -o arch/x86_64/mm/pmm.o
+In file included from arch/x86_64/mm/pmm.c:3:
+arch/x86_64/mm/pmm.c: In function ‘pmm_init’:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/mm/pmm.c:54:12: note: in expansion of macro ‘KERN_INFO’
+   54 |     printk(KERN_INFO "PMM init start with mb2_info_ptr=0x%llx\n", mb2_info_ptr);
+      |            ^~~~~~~~~
+arch/x86_64/mm/pmm.c:54:61: note: format string is defined here
+   54 |     printk(KERN_INFO "PMM init start with mb2_info_ptr=0x%llx\n", mb2_info_ptr);
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+In file included from arch/x86_64/mm/pmm.c:3:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/mm/pmm.c:154:12: note: in expansion of macro ‘KERN_INFO’
+  154 |     printk(KERN_INFO "PMM initialized: %llx blocks total, %llx blocks used, %d zones\n",
+      |            ^~~~~~~~~
+arch/x86_64/mm/pmm.c:154:43: note: format string is defined here
+  154 |     printk(KERN_INFO "PMM initialized: %llx blocks total, %llx blocks used, %d zones\n",
+      |                                        ~~~^
+      |                                           |
+      |                                           long long unsigned int
+      |                                        %lx
+In file included from arch/x86_64/mm/pmm.c:3:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/mm/pmm.c:154:12: note: in expansion of macro ‘KERN_INFO’
+  154 |     printk(KERN_INFO "PMM initialized: %llx blocks total, %llx blocks used, %d zones\n",
+      |            ^~~~~~~~~
+arch/x86_64/mm/pmm.c:154:62: note: format string is defined here
+  154 |     printk(KERN_INFO "PMM initialized: %llx blocks total, %llx blocks used, %d zones\n",
+      |                                                           ~~~^
+      |                                                              |
+      |                                                              long long unsigned int
+      |                                                           %lx
+In file included from arch/x86_64/mm/pmm.c:3:
+include/kernel.h:23:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   23 | #define KERN_DEBUG   "<7>"
+      |                      ^~~~~
+arch/x86_64/mm/pmm.c:157:16: note: in expansion of macro ‘KERN_DEBUG’
+  157 |         printk(KERN_DEBUG "PMM zone %s: %llx blocks (%llx free)\n",
+      |                ^~~~~~~~~~
+arch/x86_64/mm/pmm.c:157:44: note: format string is defined here
+  157 |         printk(KERN_DEBUG "PMM zone %s: %llx blocks (%llx free)\n",
+      |                                         ~~~^
+      |                                            |
+      |                                            long long unsigned int
+      |                                         %lx
+In file included from arch/x86_64/mm/pmm.c:3:
+include/kernel.h:23:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 4 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   23 | #define KERN_DEBUG   "<7>"
+      |                      ^~~~~
+arch/x86_64/mm/pmm.c:157:16: note: in expansion of macro ‘KERN_DEBUG’
+  157 |         printk(KERN_DEBUG "PMM zone %s: %llx blocks (%llx free)\n",
+      |                ^~~~~~~~~~
+arch/x86_64/mm/pmm.c:157:57: note: format string is defined here
+  157 |         printk(KERN_DEBUG "PMM zone %s: %llx blocks (%llx free)\n",
+      |                                                      ~~~^
+      |                                                         |
+      |                                                         long long unsigned int
+      |                                                      %lx
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/slab.c -o arch/x86_64/mm/slab.o
+arch/x86_64/mm/slab.c: In function ‘slab_page_alloc’:
+arch/x86_64/mm/slab.c:12:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint64_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+   12 |     for (int i = 1; i < npages; i++) {
+      |                       ^
+arch/x86_64/mm/slab.c: In function ‘slab_page_free’:
+arch/x86_64/mm/slab.c:28:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint64_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+   28 |     for (int i = 0; i < npages; i++) {
+      |                       ^
+In file included from arch/x86_64/mm/slab.c:2:
+arch/x86_64/mm/slab.c: In function ‘slab_cache_stats’:
+include/kernel.h:23:22: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   23 | #define KERN_DEBUG   "<7>"
+      |                      ^~~~~
+arch/x86_64/mm/slab.c:207:12: note: in expansion of macro ‘KERN_DEBUG’
+  207 |     printk(KERN_DEBUG "SLAB: %s allocs=%d frees=%d errors=%d\n",
+      |            ^~~~~~~~~~
+arch/x86_64/mm/slab.c:207:41: note: format string is defined here
+  207 |     printk(KERN_DEBUG "SLAB: %s allocs=%d frees=%d errors=%d\n",
+      |                                        ~^
+      |                                         |
+      |                                         int
+      |                                        %ld
+In file included from arch/x86_64/mm/slab.c:2:
+include/kernel.h:23:22: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   23 | #define KERN_DEBUG   "<7>"
+      |                      ^~~~~
+arch/x86_64/mm/slab.c:207:12: note: in expansion of macro ‘KERN_DEBUG’
+  207 |     printk(KERN_DEBUG "SLAB: %s allocs=%d frees=%d errors=%d\n",
+      |            ^~~~~~~~~~
+arch/x86_64/mm/slab.c:207:50: note: format string is defined here
+  207 |     printk(KERN_DEBUG "SLAB: %s allocs=%d frees=%d errors=%d\n",
+      |                                                 ~^
+      |                                                  |
+      |                                                  int
+      |                                                 %ld
+In file included from arch/x86_64/mm/slab.c:2:
+include/kernel.h:23:22: warning: format ‘%d’ expects argument of type ‘int’, but argument 5 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   23 | #define KERN_DEBUG   "<7>"
+      |                      ^~~~~
+arch/x86_64/mm/slab.c:207:12: note: in expansion of macro ‘KERN_DEBUG’
+  207 |     printk(KERN_DEBUG "SLAB: %s allocs=%d frees=%d errors=%d\n",
+      |            ^~~~~~~~~~
+arch/x86_64/mm/slab.c:207:60: note: format string is defined here
+  207 |     printk(KERN_DEBUG "SLAB: %s allocs=%d frees=%d errors=%d\n",
+      |                                                           ~^
+      |                                                            |
+      |                                                            int
+      |                                                           %ld
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/smep_smap.c -o arch/x86_64/mm/smep_smap.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/swap.c -o arch/x86_64/mm/swap.o
+In file included from arch/x86_64/mm/swap.c:2:
+arch/x86_64/mm/swap.c: In function ‘swap_init’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+arch/x86_64/mm/swap.c:31:16: note: in expansion of macro ‘KERN_INFO’
+   31 |         printk(KERN_INFO "SWAP: Enabled on %s, %llu MB capacity.\n",
+      |                ^~~~~~~~~
+arch/x86_64/mm/swap.c:31:51: note: format string is defined here
+   31 |         printk(KERN_INFO "SWAP: Enabled on %s, %llu MB capacity.\n",
+      |                                                ~~~^
+      |                                                   |
+      |                                                   long long unsigned int
+      |                                                %lu
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c arch/x86_64/mm/vmm.c -o arch/x86_64/mm/vmm.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/ehci.c -o drivers/usb/ehci.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/usb_core.c -o drivers/usb/usb_core.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/usb_hid.c -o drivers/usb/usb_hid.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/usb_hub.c -o drivers/usb/usb_hub.o
+drivers/usb/usb_hub.c:19:15: warning: initialization of ‘int (*)(device_t *)’ {aka ‘int (*)(struct device *)’} from incompatible pointer type ‘void (*)(device_t *)’ {aka ‘void (*)(struct device *)’} [-Wincompatible-pointer-types]
+   19 |     .remove = usb_hub_remove,
+      |               ^~~~~~~~~~~~~~
+drivers/usb/usb_hub.c:19:15: note: (near initialization for ‘usb_hub_driver.remove’)
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/usb_msc.c -o drivers/usb/usb_msc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/usb_uvc.c -o drivers/usb/usb_uvc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c drivers/usb/xhci.c -o drivers/usb/xhci.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/block.c -o fs/block.o
+In file included from fs/block.c:2:
+fs/block.c: In function ‘block_register_device’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+fs/block.c:17:12: note: in expansion of macro ‘KERN_INFO’
+   17 |     printk(KERN_INFO "BLOCK: Registered device '%s' (size=%llu blocks)\n", dev->name, dev->total_blocks);
+      |            ^~~~~~~~~
+fs/block.c:17:62: note: format string is defined here
+   17 |     printk(KERN_INFO "BLOCK: Registered device '%s' (size=%llu blocks)\n", dev->name, dev->total_blocks);
+      |                                                           ~~~^
+      |                                                              |
+      |                                                              long long unsigned int
+      |                                                           %lu
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/devfs.c -o fs/devfs.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/directory_watch.c -o fs/directory_watch.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/ext2.c -o fs/ext2.o
+fs/ext2.c: In function ‘ext2_create_file’:
+fs/ext2.c:453:81: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  453 | static vfs_node_t *ext2_create_file(vfs_node_t *dir, const char *name, uint32_t flags) {
+      |                                                                        ~~~~~~~~~^~~~~
+At top level:
+fs/ext2.c:536:12: warning: ‘ext2_unlink’ defined but not used [-Wunused-function]
+  536 | static int ext2_unlink(vfs_node_t *dir, const char *name) {
+      |            ^~~~~~~~~~~
+fs/ext2.c:492:20: warning: ‘ext2_mkdir’ defined but not used [-Wunused-function]
+  492 | static vfs_node_t *ext2_mkdir(vfs_node_t *dir, const char *name) {
+      |                    ^~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/fat32.c -o fs/fat32.o
+fs/fat32.c:35:17: warning: ‘fat32_write’ defined but not used [-Wunused-function]
+   35 | static uint32_t fat32_write(vfs_node_t *node, uint32_t offset, uint32_t size, const uint8_t *buffer) {
+      |                 ^~~~~~~~~~~
+fs/fat32.c:29:17: warning: ‘fat32_read’ defined but not used [-Wunused-function]
+   29 | static uint32_t fat32_read(vfs_node_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
+      |                 ^~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/procfs.c -o fs/procfs.o
+fs/procfs.c: In function ‘proc_meminfo_read’:
+fs/procfs.c:24:14: warning: unused variable ‘used_kb’ [-Wunused-variable]
+   24 |     uint64_t used_kb = (used_mem * 4096) / 1024;
+      |              ^~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/shadowfs.c -o fs/shadowfs.o
+fs/shadowfs.c:14:17: warning: ‘shadowfs_write’ defined but not used [-Wunused-function]
+   14 | static uint32_t shadowfs_write(vfs_node_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
+      |                 ^~~~~~~~~~~~~~
+fs/shadowfs.c:9:17: warning: ‘shadowfs_read’ defined but not used [-Wunused-function]
+    9 | static uint32_t shadowfs_read(vfs_node_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
+      |                 ^~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/sysfs.c -o fs/sysfs.o
+fs/sysfs.c: In function ‘sysfs_netinfo_read’:
+fs/sysfs.c:115:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  115 |     while (dev && pos < sizeof(data) - 128) {
+      |                       ^
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c fs/tmpfs.c -o fs/tmpfs.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c gui/c/fb_draw.c -o gui/c/fb_draw.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c gui/c/screensaver.c -o gui/c/screensaver.o
+gui/c/screensaver.c:14:52: warning: ‘ss_buffer_static’ defined but not used [-Wunused-variable]
+   14 | static uint32_t *ss_buffer = NULL; static uint32_t ss_buffer_static[SCREEN_WIDTH * SCREEN_HEIGHT];
+      |                                                    ^~~~~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/acpi/aml.c -o kernel/acpi/aml.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/acpi/battery.c -o kernel/acpi/battery.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/acpi/parser.c -o kernel/acpi/parser.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/acpi/thermal.c -o kernel/acpi/thermal.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/boot.c -o kernel/boot.o
+In file included from kernel/boot.c:2:
+kernel/boot.c: In function ‘boot_stage_end’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/boot.c:39:12: note: in expansion of macro ‘KERN_INFO’
+   39 |     printk(KERN_INFO "BOOT: %s done (%llu us)\n", stages[idx].name, elapsed);
+      |            ^~~~~~~~~
+kernel/boot.c:39:41: note: format string is defined here
+   39 |     printk(KERN_INFO "BOOT: %s done (%llu us)\n", stages[idx].name, elapsed);
+      |                                      ~~~^
+      |                                         |
+      |                                         long long unsigned int
+      |                                      %lu
+In file included from kernel/boot.c:2:
+kernel/boot.c: In function ‘boot_stages_summary’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 4 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/boot.c:50:16: note: in expansion of macro ‘KERN_INFO’
+   50 |         printk(KERN_INFO "BOOT:   %d. %s %llu us\n", i + 1, stages[i].name, elapsed);
+      |                ^~~~~~~~~
+kernel/boot.c:50:45: note: format string is defined here
+   50 |         printk(KERN_INFO "BOOT:   %d. %s %llu us\n", i + 1, stages[i].name, elapsed);
+      |                                          ~~~^
+      |                                             |
+      |                                             long long unsigned int
+      |                                          %lu
+In file included from kernel/boot.c:2:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/boot.c:52:12: note: in expansion of macro ‘KERN_INFO’
+   52 |     printk(KERN_INFO "BOOT: Total boot time: %llu us\n", total);
+      |            ^~~~~~~~~
+kernel/boot.c:52:49: note: format string is defined here
+   52 |     printk(KERN_INFO "BOOT: Total boot time: %llu us\n", total);
+      |                                              ~~~^
+      |                                                 |
+      |                                                 long long unsigned int
+      |                                              %lu
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/calendar.c -o kernel/calendar.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/camera.c -o kernel/camera.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/driver.c -o kernel/driver.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/drivers/input/usb_hid_driver.c -o kernel/drivers/input/usb_hid_driver.o
+In file included from include/usb.h:4,
+                 from kernel/drivers/input/usb_hid_driver.c:2:
+include/types.h:36:14: warning: excess elements in struct initializer
+   36 | #define NULL ((void *)0)
+      |              ^
+kernel/drivers/input/usb_hid_driver.c:43:5: note: in expansion of macro ‘NULL’
+   43 |     NULL
+      |     ^~~~
+include/types.h:36:14: note: (near initialization for ‘usb_hid_driver’)
+   36 | #define NULL ((void *)0)
+      |              ^
+kernel/drivers/input/usb_hid_driver.c:43:5: note: in expansion of macro ‘NULL’
+   43 |     NULL
+      |     ^~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/elf.c -o kernel/elf.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/entropy.c -o kernel/entropy.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/font.c -o kernel/font.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hal/alloc_wrapper.c -o kernel/hal/alloc_wrapper.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hal/cpu.c -o kernel/hal/cpu.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hal/hal.c -o kernel/hal/hal.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hal/memory.c -o kernel/hal/memory.o
+In file included from kernel/hal/memory.c:2:
+kernel/hal/memory.c: In function ‘memory_init’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/hal/memory.c:23:12: note: in expansion of macro ‘KERN_INFO’
+   23 |     printk(KERN_INFO "MEM: %llu MB total, %llu MB usable\n",
+      |            ^~~~~~~~~
+kernel/hal/memory.c:23:31: note: format string is defined here
+   23 |     printk(KERN_INFO "MEM: %llu MB total, %llu MB usable\n",
+      |                            ~~~^
+      |                               |
+      |                               long long unsigned int
+      |                            %lu
+In file included from kernel/hal/memory.c:2:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/hal/memory.c:23:12: note: in expansion of macro ‘KERN_INFO’
+   23 |     printk(KERN_INFO "MEM: %llu MB total, %llu MB usable\n",
+      |            ^~~~~~~~~
+kernel/hal/memory.c:23:46: note: format string is defined here
+   23 |     printk(KERN_INFO "MEM: %llu MB total, %llu MB usable\n",
+      |                                           ~~~^
+      |                                              |
+      |                                              long long unsigned int
+      |                                           %lu
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hal/peripheral.c -o kernel/hal/peripheral.o
+kernel/hal/peripheral.c: In function ‘peripheral_enumerate’:
+kernel/hal/peripheral.c:21:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+   21 |     for (int i = 0; i < peripheral_list.device_count && i < 64; i++)
+      |                       ^
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hal/storage.c -o kernel/hal/storage.o
+In file included from kernel/hal/storage.c:2:
+kernel/hal/storage.c: In function ‘storage_init’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/hal/storage.c:64:20: note: in expansion of macro ‘KERN_INFO’
+   64 |             printk(KERN_INFO "STORAGE: %s detected (%llu MB)\n",
+      |                    ^~~~~~~~~
+kernel/hal/storage.c:64:56: note: format string is defined here
+   64 |             printk(KERN_INFO "STORAGE: %s detected (%llu MB)\n",
+      |                                                     ~~~^
+      |                                                        |
+      |                                                        long long unsigned int
+      |                                                     %lu
+In file included from kernel/hal/storage.c:2:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/hal/storage.c:77:20: note: in expansion of macro ‘KERN_INFO’
+   77 |             printk(KERN_INFO "STORAGE: %s detected (%llu MB)\n",
+      |                    ^~~~~~~~~
+kernel/hal/storage.c:77:56: note: format string is defined here
+   77 |             printk(KERN_INFO "STORAGE: %s detected (%llu MB)\n",
+      |                                                     ~~~^
+      |                                                        |
+      |                                                        long long unsigned int
+      |                                                     %lu
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hid.c -o kernel/hid.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hid_kbd.c -o kernel/hid_kbd.o
+kernel/hid_kbd.c:29:23: warning: ‘keymap_set1_shift’ defined but not used [-Wunused-const-variable=]
+   29 | static const uint32_t keymap_set1_shift[128] = {
+      |                       ^~~~~~~~~~~~~~~~~
+kernel/hid_kbd.c:20:23: warning: ‘keymap_set1_normal’ defined but not used [-Wunused-const-variable=]
+   20 | static const uint32_t keymap_set1_normal[128] = {
+      |                       ^~~~~~~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/idle.c -o kernel/idle.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/input.c -o kernel/input.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/input_multiplexer.c -o kernel/input_multiplexer.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/ipc.c -o kernel/ipc.o
+kernel/ipc.c: In function ‘pipe_create’:
+kernel/ipc.c:44:19: warning: cast between incompatible function types from ‘int (*)(pipe_buffer_t *, void *, uint32_t)’ {aka ‘int (*)(struct pipe_buffer *, void *, unsigned int)’} to ‘uint32_t (*)(struct vfs_node *, uint32_t,  uint32_t,  uint8_t *)’ {aka ‘unsigned int (*)(struct vfs_node *, unsigned int,  unsigned int,  unsigned char *)’} [-Wcast-function-type]
+   44 |     rnode->read = (read_type_t)pipe_read;
+      |                   ^
+kernel/ipc.c:45:20: warning: cast between incompatible function types from ‘int (*)(pipe_buffer_t *, const void *, uint32_t)’ {aka ‘int (*)(struct pipe_buffer *, const void *, unsigned int)’} to ‘uint32_t (*)(struct vfs_node *, uint32_t,  uint32_t,  uint8_t *)’ {aka ‘unsigned int (*)(struct vfs_node *, unsigned int,  unsigned int,  unsigned char *)’} [-Wcast-function-type]
+   45 |     wnode->write = (write_type_t)pipe_write;
+      |                    ^
+kernel/ipc.c: In function ‘shmat’:
+kernel/ipc.c:126:23: warning: implicit declaration of function ‘aslr_get_mmap_base’ [-Wimplicit-function-declaration]
+  126 |             s->virt = aslr_get_mmap_base();
+      |                       ^~~~~~~~~~~~~~~~~~
+kernel/ipc.c: In function ‘shmctl’:
+kernel/ipc.c:173:38: warning: unused parameter ‘buf’ [-Wunused-parameter]
+  173 | int shmctl(int shmid, int cmd, void *buf) {
+      |                                ~~~~~~^~~
+kernel/ipc.c: In function ‘semop’:
+kernel/ipc.c:337:21: warning: implicit declaration of function ‘sched_enqueue’ [-Wimplicit-function-declaration]
+  337 |                     sched_enqueue(w->proc);
+      |                     ^~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/irq_monitor.c -o kernel/irq_monitor.o
+In file included from kernel/irq_monitor.c:2:
+kernel/irq_monitor.c: In function ‘irq_monitor_print_stats’:
+include/kernel.h:22:22: warning: format ‘%llu’ expects argument of type ‘long long unsigned int’, but argument 3 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/irq_monitor.c:32:20: note: in expansion of macro ‘KERN_INFO’
+   32 |             printk(KERN_INFO "IRQ %d count: %llu\n", i, irq_counts[i]);
+      |                    ^~~~~~~~~
+kernel/irq_monitor.c:32:48: note: format string is defined here
+   32 |             printk(KERN_INFO "IRQ %d count: %llu\n", i, irq_counts[i]);
+      |                                             ~~~^
+      |                                                |
+      |                                                long long unsigned int
+      |                                             %lu
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/keyboard_layouts.c -o kernel/keyboard_layouts.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/keyboard_shortcuts.c -o kernel/keyboard_shortcuts.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/kthread.c -o kernel/kthread.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/main.c -o kernel/main.o
+kernel/main.c: In function ‘kernel_subsys_init’:
+kernel/main.c:294:5: warning: implicit declaration of function ‘preemptive_sched_init’ [-Wimplicit-function-declaration]
+  294 |     preemptive_sched_init();
+      |     ^~~~~~~~~~~~~~~~~~~~~
+In file included from kernel/main.c:2:
+kernel/main.c: In function ‘init_user_thread’:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/main.c:483:12: note: in expansion of macro ‘KERN_INFO’
+  483 |     printk(KERN_INFO "ShadowBox: jumping to user mode at %llx...\n", entry_point);
+      |            ^~~~~~~~~
+kernel/main.c:483:61: note: format string is defined here
+  483 |     printk(KERN_INFO "ShadowBox: jumping to user mode at %llx...\n", entry_point);
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/mem/bcache.c -o kernel/mem/bcache.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/mem/hugepage.c -o kernel/mem/hugepage.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/mem/lru.c -o kernel/mem/lru.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/mem/numa.c -o kernel/mem/numa.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/memory.c -o kernel/memory.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/micro_ipc.c -o kernel/micro_ipc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/module.c -o kernel/module.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/namespace.c -o kernel/namespace.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/notification.c -o kernel/notification.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/power.c -o kernel/power.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/preemptive_sched.c -o kernel/preemptive_sched.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/printk.c -o kernel/printk.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/pty.c -o kernel/pty.o
+kernel/pty.c:134:17: warning: ‘sys_pty_create’ defined but not used [-Wunused-function]
+  134 | static uint64_t sys_pty_create(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/rng.c -o kernel/rng.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/root.c -o kernel/root.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/sched.c -o kernel/sched.o
+kernel/sched.c:70:17: warning: ‘vruntime_delta’ defined but not used [-Wunused-function]
+   70 | static uint64_t vruntime_delta(struct process *p) {
+      |                 ^~~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/sched/cfs.c -o kernel/sched/cfs.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/sched/loadbal.c -o kernel/sched/loadbal.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/sched/rt.c -o kernel/sched/rt.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/seccomp.c -o kernel/seccomp.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/security.c -o kernel/security.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/session.c -o kernel/session.o
+kernel/session.c: In function ‘session_authenticate_user’:
+kernel/session.c:17:65: warning: unused parameter ‘password_hash’ [-Wunused-parameter]
+   17 | int session_authenticate_user(const char *username, const char *password_hash) {
+      |                                                     ~~~~~~~~~~~~^~~~~~~~~~~~~
+kernel/session.c: In function ‘permission_agent_request_auth’:
+kernel/session.c:45:51: warning: unused parameter ‘session’ [-Wunused-parameter]
+   45 | int permission_agent_request_auth(user_session_t *session, const char *action_id) {
+      |                                   ~~~~~~~~~~~~~~~~^~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/signal.c -o kernel/signal.o
+kernel/signal.c:30:13: warning: ‘sig_default_cont’ defined but not used [-Wunused-function]
+   30 | static void sig_default_cont(int sig) {
+      |             ^~~~~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/softirq.c -o kernel/softirq.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/syscall.c -o kernel/syscall.o
+In file included from kernel/syscall.c:14:
+include/ipc.h:11: warning: "O_NONBLOCK" redefined
+   11 | #define O_NONBLOCK 04000
+      | 
+In file included from kernel/syscall.c:10:
+include/fcntl.h:12: note: this is the location of the previous definition
+   12 | #define O_NONBLOCK  0x800
+      | 
+kernel/syscall.c:35: warning: "MAX_PIPES" redefined
+   35 | #define MAX_PIPES 64
+      | 
+In file included from kernel/syscall.c:14:
+include/ipc.h:10: note: this is the location of the previous definition
+   10 | #define MAX_PIPES 128
+      | 
+kernel/syscall.c: In function ‘sys_pipe’:
+kernel/syscall.c:585:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  585 |     for (int i = 0; i < sizeof(struct pipe); i++) ((char*)p)[i] = 0;
+      |                       ^
+kernel/syscall.c: In function ‘sys_dup2’:
+kernel/syscall.c:637:15: warning: comparison of unsigned expression in ‘< 0’ is always false [-Wtype-limits]
+  637 |     if (newfd < 0 || newfd >= MAX_FDS) return -EBADF;
+      |               ^
+kernel/syscall.c: In function ‘sys_shmget’:
+kernel/syscall.c:750:82: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  750 | static uint64_t sys_shmget(uint64_t key, uint64_t size, uint64_t flags, uint64_t unused1, uint64_t unused2) {
+      |                                                                         ~~~~~~~~~^~~~~~~
+kernel/syscall.c:750:100: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  750 | static uint64_t sys_shmget(uint64_t key, uint64_t size, uint64_t flags, uint64_t unused1, uint64_t unused2) {
+      |                                                                                           ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_shmat’:
+kernel/syscall.c:753:87: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  753 | static uint64_t sys_shmat(uint64_t shmid, uint64_t shmaddr, uint64_t shmflg, uint64_t unused1, uint64_t unused2) {
+      |                                                                              ~~~~~~~~~^~~~~~~
+kernel/syscall.c:753:105: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  753 | static uint64_t sys_shmat(uint64_t shmid, uint64_t shmaddr, uint64_t shmflg, uint64_t unused1, uint64_t unused2) {
+      |                                                                                                ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_shmdt’:
+kernel/syscall.c:756:54: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                             ~~~~~~~~~^~~~~~~
+kernel/syscall.c:756:72: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                                               ~~~~~~~~~^~~~~~~
+kernel/syscall.c:756:90: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                                                                 ~~~~~~~~~^~~~~~~
+kernel/syscall.c:756:108: warning: unused parameter ‘unused4’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                                                                                   ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_shmctl’:
+kernel/syscall.c:759:81: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  759 | static uint64_t sys_shmctl(uint64_t shmid, uint64_t cmd, uint64_t buf, uint64_t unused1, uint64_t unused2) {
+      |                                                                        ~~~~~~~~~^~~~~~~
+kernel/syscall.c:759:99: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  759 | static uint64_t sys_shmctl(uint64_t shmid, uint64_t cmd, uint64_t buf, uint64_t unused1, uint64_t unused2) {
+      |                                                                                          ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_clipboard_set’:
+kernel/syscall.c:1001:77: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                    ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1001:95: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                      ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1001:113: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                                        ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_clipboard_get’:
+kernel/syscall.c:1011:80: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                       ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1011:98: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                         ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1011:116: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                                           ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘rtc_to_unix’:
+kernel/syscall.c:1102:26: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+ 1102 |     for (int y = 1970; y < year; y++) {
+      |                          ^
+kernel/syscall.c: In function ‘sb_socket_create_wrapper’:
+kernel/syscall.c:1130:32: warning: implicit declaration of function ‘sb_socket_create’; did you mean ‘sb_socket_create_wrapper’? [-Wimplicit-function-declaration]
+ 1130 |     (void)u1; (void)u2; return sb_socket_create((int)domain, (int)type, (int)protocol);
+      |                                ^~~~~~~~~~~~~~~~
+      |                                sb_socket_create_wrapper
+kernel/syscall.c: In function ‘sb_socket_connect_wrapper’:
+kernel/syscall.c:1133:32: warning: implicit declaration of function ‘sb_socket_connect’; did you mean ‘sb_socket_connect_wrapper’? [-Wimplicit-function-declaration]
+ 1133 |     (void)u1; (void)u2; return sb_socket_connect((int)sockfd, (const void*)addr, (size_t)addrlen);
+      |                                ^~~~~~~~~~~~~~~~~
+      |                                sb_socket_connect_wrapper
+kernel/syscall.c: In function ‘sb_socket_bind_wrapper’:
+kernel/syscall.c:1136:32: warning: implicit declaration of function ‘sb_socket_bind’; did you mean ‘sb_socket_bind_wrapper’? [-Wimplicit-function-declaration]
+ 1136 |     (void)u1; (void)u2; return sb_socket_bind((int)sockfd, (const void*)addr, (size_t)addrlen);
+      |                                ^~~~~~~~~~~~~~
+      |                                sb_socket_bind_wrapper
+kernel/syscall.c: In function ‘sb_socket_listen_wrapper’:
+kernel/syscall.c:1139:42: warning: implicit declaration of function ‘sb_socket_listen’; did you mean ‘sb_socket_listen_wrapper’? [-Wimplicit-function-declaration]
+ 1139 |     (void)u1; (void)u2; (void)u3; return sb_socket_listen((int)sockfd, (int)backlog);
+      |                                          ^~~~~~~~~~~~~~~~
+      |                                          sb_socket_listen_wrapper
+kernel/syscall.c: In function ‘sb_socket_accept_wrapper’:
+kernel/syscall.c:1142:32: warning: implicit declaration of function ‘sb_socket_accept’; did you mean ‘sb_socket_accept_wrapper’? [-Wimplicit-function-declaration]
+ 1142 |     (void)u1; (void)u2; return sb_socket_accept((int)sockfd, (void*)addr, (size_t*)addrlen);
+      |                                ^~~~~~~~~~~~~~~~
+      |                                sb_socket_accept_wrapper
+kernel/syscall.c: In function ‘sys_fb_mmap’:
+kernel/syscall.c:1259:14: warning: unused variable ‘width’ [-Wunused-variable]
+ 1259 |     uint32_t width = fb_get_width();
+      |              ^~~~~
+kernel/syscall.c: At top level:
+kernel/syscall.c:1402:26: warning: initialized field overwritten [-Woverride-init]
+ 1402 |     [100]              = sys_times,
+      |                          ^~~~~~~~~
+kernel/syscall.c:1402:26: note: (near initialization for ‘syscall_table[100]’)
+kernel/syscall.c:1316:17: warning: ‘sys_chown’ defined but not used [-Wunused-function]
+ 1316 | static uint64_t sys_chown(uint64_t pathname, uint64_t owner, uint64_t group, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:1294:17: warning: ‘sys_chmod’ defined but not used [-Wunused-function]
+ 1294 | static uint64_t sys_chmod(uint64_t pathname, uint64_t mode, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/syscall_tracer.c -o kernel/syscall_tracer.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/tarfs.c -o kernel/tarfs.o
+In file included from kernel/tarfs.c:2:
+kernel/tarfs.c: In function ‘tarfs_init’:
+include/kernel.h:22:22: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/tarfs.c:213:12: note: in expansion of macro ‘KERN_INFO’
+  213 |     printk(KERN_INFO "TarFS mounted at root, starting at %x\n", address);
+      |            ^~~~~~~~~
+kernel/tarfs.c:213:59: note: format string is defined here
+  213 |     printk(KERN_INFO "TarFS mounted at root, starting at %x\n", address);
+      |                                                          ~^
+      |                                                           |
+      |                                                           unsigned int
+      |                                                          %lx
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/task.c -o kernel/task.o
+kernel/task.c: In function ‘do_exit’:
+kernel/task.c:77:25: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+   77 |             if (p->ppid == current_proc->pid && p != current_proc) {
+      |                         ^~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/test_priority.c -o kernel/test_priority.o
+kernel/test_priority.c: In function ‘test_priority_scheduler’:
+kernel/test_priority.c:34:47: warning: operand of ‘?:’ changes signedness from ‘int’ to ‘uint32_t’ {aka ‘unsigned int’} due to unsignedness of other operand [-Wsign-compare]
+   34 |                p_high.pid, next ? next->pid : -1);
+      |                                               ^~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/time.c -o kernel/time.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/trackpad.c -o kernel/trackpad.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/vfs.c -o kernel/vfs.o
+kernel/vfs.c: In function ‘vfs_mkdir’:
+kernel/vfs.c:193:61: warning: unused parameter ‘mode’ [-Wunused-parameter]
+  193 | int vfs_mkdir(const char *path, vfs_node_t *start, uint32_t mode) {
+      |                                                    ~~~~~~~~~^~~~
+kernel/vfs.c: In function ‘vfs_unlock_file’:
+kernel/vfs.c:304:48: warning: unused parameter ‘start’ [-Wunused-parameter]
+  304 | int vfs_unlock_file(vfs_node_t *node, uint64_t start, uint64_t end, uint32_t owner) {
+      |                                       ~~~~~~~~~^~~~~
+kernel/vfs.c:304:64: warning: unused parameter ‘end’ [-Wunused-parameter]
+  304 | int vfs_unlock_file(vfs_node_t *node, uint64_t start, uint64_t end, uint32_t owner) {
+      |                                                       ~~~~~~~~~^~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/wait.c -o kernel/wait.o
+kernel/wait.c: In function ‘sys_wait4’:
+kernel/wait.c:27:25: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+   27 |             if (p->ppid == cur->pid) {
+      |                         ^~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c lib/kstring.c -o lib/kstring.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c net/net.c -o net/net.o
+net/net.c: In function ‘icmp_handle_packet’:
+net/net.c:106:63: warning: converting a packed ‘struct ip_header’ pointer (alignment 1) to a ‘uint16_t’ {aka ‘short unsigned int’} pointer (alignment 2) may result in an unaligned pointer value [-Waddress-of-packed-member]
+  106 |     ip->checksum = net_checksum((uint16_t *)ip, sizeof(struct ip_header));
+      |                                                               ^~~~~~~~~
+In file included from net/net.c:1:
+include/net.h:59:8: note: defined here
+   59 | struct ip_header {
+      |        ^~~~~~~~~
+net/net.c: In function ‘ip_handle_packet’:
+net/net.c:143:52: warning: converting a packed ‘struct ip_header’ pointer (alignment 1) to a ‘uint16_t’ {aka ‘short unsigned int’} pointer (alignment 2) may result in an unaligned pointer value [-Waddress-of-packed-member]
+  143 |     if (net_checksum((uint16_t *)ip, sizeof(struct ip_header)) != checksum) return;
+      |                                                    ^~~~~~~~~
+In file included from net/net.c:1:
+include/net.h:59:8: note: defined here
+   59 | struct ip_header {
+      |        ^~~~~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c net/socket.c -o net/socket.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c net/tcp.c -o net/tcp.o
+net/tcp.c: In function ‘tcp_send_ip_packet’:
+net/tcp.c:67:22: warning: unsigned conversion from ‘int’ to ‘uint16_t’ {aka ‘short unsigned int’} changes value from ‘524296’ to ‘8’ [-Woverflow]
+   67 |     eth->ethertype = (ETH_IP >> 8) | (ETH_IP << 8);
+      |                      ^
+net/tcp.c:80:63: warning: converting a packed ‘struct ip_header’ pointer (alignment 1) to a ‘uint16_t’ {aka ‘short unsigned int’} pointer (alignment 2) may result in an unaligned pointer value [-Waddress-of-packed-member]
+   80 |     ip->checksum = net_checksum((uint16_t *)ip, sizeof(struct ip_header));
+      |                                                               ^~~~~~~~~
+In file included from include/tcp.h:5,
+                 from net/tcp.c:1:
+include/net.h:59:8: note: defined here
+   59 | struct ip_header {
+      |        ^~~~~~~~~
+net/tcp.c: In function ‘tcp_handle_packet’:
+net/tcp.c:288:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
+  288 |         {
+      |         ^
+net/tcp.c:302:5: note: here
+  302 |     case TCP_FIN_WAIT_1:
+      |     ^~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c net/udp.c -o net/udp.o
+net/udp.c: In function ‘udp_socket_sendto’:
+net/udp.c:50:22: warning: unsigned conversion from ‘int’ to ‘uint16_t’ {aka ‘short unsigned int’} changes value from ‘524296’ to ‘8’ [-Woverflow]
+   50 |     eth->ethertype = (ETH_IP >> 8) | (ETH_IP << 8);
+      |                      ^
+net/udp.c:63:63: warning: converting a packed ‘struct ip_header’ pointer (alignment 1) to a ‘uint16_t’ {aka ‘short unsigned int’} pointer (alignment 2) may result in an unaligned pointer value [-Waddress-of-packed-member]
+   63 |     ip->checksum = net_checksum((uint16_t *)ip, sizeof(struct ip_header));
+      |                                                               ^~~~~~~~~
+In file included from include/udp.h:5,
+                 from net/udp.c:1:
+include/net.h:59:8: note: defined here
+   59 | struct ip_header {
+      |        ^~~~~~~~~
+net/udp.c: In function ‘udp_handle_packet’:
+net/udp.c:94:83: warning: unused parameter ‘src_ip’ [-Wunused-parameter]
+   94 | void udp_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip) {
+      |                                                                          ~~~~~~~~~^~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c power/suspend.c -o power/suspend.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c ui/color_picker.c -o ui/color_picker.o
+ui/color_picker.c: In function ‘color_picker_create’:
+ui/color_picker.c:9:19: warning: implicit declaration of function ‘widget_create’ [-Wimplicit-function-declaration]
+    9 |     widget_t *w = widget_create(WIDGET_TYPE_COLOR_PICKER, x, y, width, height);
+      |                   ^~~~~~~~~~~~~
+ui/color_picker.c:9:19: warning: initialization of ‘widget_t *’ {aka ‘struct widget *’} from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c ui/diff_viewer.c -o ui/diff_viewer.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c ui/font.c -o ui/font.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c ui/widget.c -o ui/widget.o
+ui/widget.c: In function ‘widget_create’:
+ui/widget.c:43:31: warning: implicit declaration of function ‘malloc’ [-Wimplicit-function-declaration]
+   43 |     widget_t *w = (widget_t *)malloc(sizeof(widget_t));
+      |                               ^~~~~~
+ui/widget.c:16:1: note: ‘malloc’ is defined in header ‘<stdlib.h>’; did you forget to ‘#include <stdlib.h>’?
+   15 | #include "gui_toolkit.h"
+  +++ |+#include <stdlib.h>
+   16 | 
+ui/widget.c:43:19: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   43 |     widget_t *w = (widget_t *)malloc(sizeof(widget_t));
+      |                   ^
+ui/widget.c: In function ‘widget_destroy’:
+ui/widget.c:75:5: warning: implicit declaration of function ‘free’ [-Wimplicit-function-declaration]
+   75 |     free(w);
+      |     ^~~~
+ui/widget.c:75:5: note: ‘free’ is defined in header ‘<stdlib.h>’; did you forget to ‘#include <stdlib.h>’?
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c wm/decorations.c -o wm/decorations.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c wm/workspace.c -o wm/workspace.o
+x86_64-linux-gnu-ld -nostdlib -z max-page-size=0x1000 -T link.ld -o os.bin arch/x86_64/boot/ap_trampoline.o arch/x86_64/boot/head.o arch/x86_64/boot/idt.o arch/x86_64/boot/isr_stubs.o arch/x86_64/drivers/acpi.o arch/x86_64/drivers/ahci.o arch/x86_64/drivers/apic.o arch/x86_64/drivers/e1000.o arch/x86_64/drivers/fb.o arch/x86_64/drivers/fb_double.o arch/x86_64/drivers/hda.o arch/x86_64/drivers/keyboard.o arch/x86_64/drivers/mouse.o arch/x86_64/drivers/pci.o arch/x86_64/drivers/pic.o arch/x86_64/drivers/pit.o arch/x86_64/drivers/ramdisk.o arch/x86_64/drivers/rtc.o arch/x86_64/drivers/rtl8139.o arch/x86_64/drivers/serial.o arch/x86_64/drivers/tickless.o arch/x86_64/drivers/tty.o arch/x86_64/drivers/usb.o arch/x86_64/drivers/virtio_net.o arch/x86_64/kernel/gdt.o arch/x86_64/kernel/idt.o arch/x86_64/kernel/smp.o arch/x86_64/kernel/switch.o arch/x86_64/kernel/syscall_entry.o arch/x86_64/mm/aslr.o arch/x86_64/mm/buddy.o arch/x86_64/mm/malloc.o arch/x86_64/mm/mmap.o arch/x86_64/mm/pmm.o arch/x86_64/mm/slab.o arch/x86_64/mm/smep_smap.o arch/x86_64/mm/swap.o arch/x86_64/mm/vmm.o drivers/usb/ehci.o drivers/usb/usb_core.o drivers/usb/usb_hid.o drivers/usb/usb_hub.o drivers/usb/usb_msc.o drivers/usb/usb_uvc.o drivers/usb/xhci.o fs/block.o fs/devfs.o fs/directory_watch.o fs/ext2.o fs/fat32.o fs/procfs.o fs/shadowfs.o fs/sysfs.o fs/tmpfs.o gui/c/fb_draw.o gui/c/screensaver.o kernel/acpi/aml.o kernel/acpi/battery.o kernel/acpi/parser.o kernel/acpi/thermal.o kernel/boot.o kernel/calendar.o kernel/camera.o kernel/driver.o kernel/drivers/input/usb_hid_driver.o kernel/elf.o kernel/entropy.o kernel/font.o kernel/hal/alloc_wrapper.o kernel/hal/cpu.o kernel/hal/hal.o kernel/hal/memory.o kernel/hal/peripheral.o kernel/hal/storage.o kernel/hid.o kernel/hid_kbd.o kernel/idle.o kernel/input.o kernel/input_multiplexer.o kernel/ipc.o kernel/irq_monitor.o kernel/keyboard_layouts.o kernel/keyboard_shortcuts.o kernel/kthread.o kernel/main.o kernel/mem/bcache.o kernel/mem/hugepage.o kernel/mem/lru.o kernel/mem/numa.o kernel/memory.o kernel/micro_ipc.o kernel/module.o kernel/namespace.o kernel/notification.o kernel/power.o kernel/preemptive_sched.o kernel/printk.o kernel/pty.o kernel/rng.o kernel/root.o kernel/sched.o kernel/sched/cfs.o kernel/sched/loadbal.o kernel/sched/rt.o kernel/seccomp.o kernel/security.o kernel/session.o kernel/signal.o kernel/softirq.o kernel/syscall.o kernel/syscall_tracer.o kernel/tarfs.o kernel/task.o kernel/test_priority.o kernel/time.o kernel/trackpad.o kernel/vfs.o kernel/wait.o lib/kstring.o net/net.o net/socket.o net/tcp.o net/udp.o power/suspend.o ui/color_picker.o ui/diff_viewer.o ui/font.o ui/widget.o wm/decorations.o wm/workspace.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/shell.c -o shell.elf
+In file included from userland/shell.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/hello.c -o hello.elf
+In file included from userland/hello.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/terminal.c -o terminal.elf
+In file included from userland/terminal.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+userland/terminal.c: In function ‘main’:
+userland/terminal.c:7:11: warning: unused variable ‘fb’ [-Wunused-variable]
+    7 |     void *fb = (void *)pixels;
+      |           ^~
+/usr/bin/ld: warning: cannot find entry symbol _start; defaulting to 0000000000401000
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/edit.c -o edit.elf
+In file included from userland/edit.c:16:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+At top level:
+userland/edit.c:27:12: warning: ‘strcmp’ defined but not used [-Wunused-function]
+   27 | static int strcmp(const char *a, const char *b) {
+      |            ^~~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/calc.c -o calc.elf
+In file included from userland/calc.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/netstat.c -o netstat.elf
+In file included from userland/netstat.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/sysfetch.c -o sysfetch.elf
+In file included from userland/sysfetch.c:5:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/strings.c -o strings.elf
+In file included from userland/strings.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/colors.c -o colors.elf
+In file included from userland/colors.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/guess.c -o guess.elf
+In file included from userland/guess.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/more.c -o more.elf
+In file included from userland/more.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/factor.c -o factor.elf
+In file included from userland/factor.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/matrix.c -o matrix.elf
+In file included from userland/matrix.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/seq.c -o seq.elf
+In file included from userland/seq.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/rev.c -o rev.elf
+In file included from userland/rev.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/wc.c -o wc.elf
+In file included from userland/wc.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/uname.c -o uname.elf
+In file included from userland/uname.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/fortune.c -o fortune.elf
+In file included from userland/fortune.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/rot13.c -o rot13.elf
+In file included from userland/rot13.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/cmp.c -o cmp.elf
+In file included from userland/cmp.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/clear.c -o clear.elf
+In file included from userland/clear.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/sleep.c -o sleep.elf
+In file included from userland/sleep.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/archive_manager.c -o archive_manager.elf
+In file included from userland/archive_manager.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+/usr/bin/ld: warning: cannot find entry symbol _start; defaulting to 0000000000401000
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/graphify_viewer.c -o graphify_viewer.elf
+In file included from userland/graphify_viewer.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/chmod.c -o chmod.elf
+In file included from userland/chmod.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+/usr/bin/ld: warning: cannot find entry symbol _start; defaulting to 0000000000401000
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/chown.c -o chown.elf
+In file included from userland/chown.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+/usr/bin/ld: warning: cannot find entry symbol _start; defaulting to 0000000000401000
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/search.c -o search.elf
+In file included from userland/search.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+/usr/bin/ld: warning: cannot find entry symbol _start; defaulting to 0000000000401000
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=small -mno-red-zone -mno-mmx -fno-pic -fno-pie -O2 -Iinclude -Iuserland -fno-stack-protector -U_FORTIFY_SOURCE -DSHADOWBOX_VERSION=\"973cde5-dirty\" -no-pie -nostdlib userland/spreadsheet.c -o spreadsheet.elf
+In file included from userland/spreadsheet.c:1:
+userland/sys.h:15:43: warning: ignoring attributes applied to ‘struct <anonymous>’ after definition [-Wattributes]
+   15 | typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
+      |                                           ^
+userland/sys.h: In function ‘sys_mount’:
+userland/sys.h:257:103: warning: unused parameter ‘flags’ [-Wunused-parameter]
+  257 | static inline int sys_mount(const char *source, const char *target, const char *fstype, unsigned long flags) {
+      |                                                                                         ~~~~~~~~~~~~~~^~~~~
+tar -cf initrd.tar shell.elf hello.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf archive_manager.elf graphify_viewer.elf file_manager.elf usb_explorer.elf network_manager_cli.elf network_manager_ui.elf network_monitor.elf chmod.elf chown.elf init.elf input_service.elf wm_service.elf clipboard_test.elf screenshot.elf yes.elf tee.elf which.elf search.elf sort.elf true.elf false.elf spreadsheet.elf -C userland wallpaper.bmp logo.bmp
+dd if=/dev/zero of=ahci_disk.img bs=1M count=10
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 0.0137489 s, 763 MB/s
+mke2fs -t ext2 -F ahci_disk.img
+mke2fs 1.46.5 (30-Dec-2021)
+Discarding device blocks:    0/2560         done                            
+Creating filesystem with 2560 4k blocks and 2560 inodes
+
+Allocating group tables: 0/1   done                            
+Writing inode tables: 0/1   done                            
+Writing superblocks and filesystem accounting information: 0/1   done
+
+mkdir -p isodir/boot/grub
+cp os.bin isodir/boot/os.bin
+cp initrd.tar isodir/boot/initrd.tar
+{ \
+	echo 'set timeout=0'; \
+	echo 'set default=0'; \
+	echo 'set gfxpayload=1024x768x32'; \
+	echo 'menuentry "OS" {'; \
+	echo '  multiboot2 /boot/os.bin'; \
+	echo '  module2 /boot/initrd.tar'; \
+	echo '  boot'; \
+	echo '}'; \
+} > isodir/boot/grub/grub.cfg
+grub-mkrescue -o os.iso isodir 2>/dev/null

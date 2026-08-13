@@ -1,0 +1,304 @@
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/syscall.c -o kernel/syscall.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/task.c -o kernel/task.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/keyboard_shortcuts.c -o kernel/keyboard_shortcuts.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/vfs.c -o kernel/vfs.o
+In file included from include/task.h:4,
+                 from kernel/task.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/vfs.h:4,
+                 from kernel/vfs.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/task.h:4,
+                 from kernel/task.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/types.h:7,
+                 from include/vfs.h:4,
+                 from kernel/vfs.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/syscall.h:4,
+                 from kernel/syscall.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/syscall.h:4,
+                 from kernel/syscall.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/hid_kbd.h:4,
+                 from include/keyboard_shortcuts.h:5,
+                 from kernel/keyboard_shortcuts.c:3:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/hid_kbd.h:4,
+                 from include/keyboard_shortcuts.h:5,
+                 from kernel/keyboard_shortcuts.c:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+kernel/vfs.c: In function ‘vfs_mkdir’:
+kernel/vfs.c:193:61: warning: unused parameter ‘mode’ [-Wunused-parameter]
+  193 | int vfs_mkdir(const char *path, vfs_node_t *start, uint32_t mode) {
+      |                                                    ~~~~~~~~~^~~~
+In file included from kernel/syscall.c:14:
+include/ipc.h:11: warning: "O_NONBLOCK" redefined
+   11 | #define O_NONBLOCK 04000
+      | 
+In file included from kernel/syscall.c:10:
+include/fcntl.h:12: note: this is the location of the previous definition
+   12 | #define O_NONBLOCK  0x800
+      | 
+kernel/vfs.c: In function ‘vfs_unlock_file’:
+kernel/vfs.c:304:48: warning: unused parameter ‘start’ [-Wunused-parameter]
+  304 | int vfs_unlock_file(vfs_node_t *node, uint64_t start, uint64_t end, uint32_t owner) {
+      |                                       ~~~~~~~~~^~~~~
+kernel/vfs.c:304:64: warning: unused parameter ‘end’ [-Wunused-parameter]
+  304 | int vfs_unlock_file(vfs_node_t *node, uint64_t start, uint64_t end, uint32_t owner) {
+      |                                                       ~~~~~~~~~^~~
+kernel/task.c: In function ‘do_exit’:
+kernel/task.c:77:25: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+   77 |             if (p->ppid == current_proc->pid && p != current_proc) {
+      |                         ^~
+kernel/syscall.c:35: warning: "MAX_PIPES" redefined
+   35 | #define MAX_PIPES 64
+      | 
+In file included from kernel/syscall.c:14:
+include/ipc.h:10: note: this is the location of the previous definition
+   10 | #define MAX_PIPES 128
+      | 
+kernel/syscall.c: In function ‘sys_pipe’:
+kernel/syscall.c:585:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  585 |     for (int i = 0; i < sizeof(struct pipe); i++) ((char*)p)[i] = 0;
+      |                       ^
+kernel/syscall.c: In function ‘sys_dup2’:
+kernel/syscall.c:637:15: warning: comparison of unsigned expression in ‘< 0’ is always false [-Wtype-limits]
+  637 |     if (newfd < 0 || newfd >= MAX_FDS) return -EBADF;
+      |               ^
+kernel/syscall.c: In function ‘sys_shmget’:
+kernel/syscall.c:750:82: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  750 | static uint64_t sys_shmget(uint64_t key, uint64_t size, uint64_t flags, uint64_t unused1, uint64_t unused2) {
+      |                                                                         ~~~~~~~~~^~~~~~~
+kernel/syscall.c:750:100: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  750 | static uint64_t sys_shmget(uint64_t key, uint64_t size, uint64_t flags, uint64_t unused1, uint64_t unused2) {
+      |                                                                                           ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_shmat’:
+kernel/syscall.c:753:87: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  753 | static uint64_t sys_shmat(uint64_t shmid, uint64_t shmaddr, uint64_t shmflg, uint64_t unused1, uint64_t unused2) {
+      |                                                                              ~~~~~~~~~^~~~~~~
+kernel/syscall.c:753:105: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  753 | static uint64_t sys_shmat(uint64_t shmid, uint64_t shmaddr, uint64_t shmflg, uint64_t unused1, uint64_t unused2) {
+      |                                                                                                ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_shmdt’:
+kernel/syscall.c:756:54: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                             ~~~~~~~~~^~~~~~~
+kernel/syscall.c:756:72: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                                               ~~~~~~~~~^~~~~~~
+kernel/syscall.c:756:90: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                                                                 ~~~~~~~~~^~~~~~~
+kernel/syscall.c:756:108: warning: unused parameter ‘unused4’ [-Wunused-parameter]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                                                                                                   ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_shmctl’:
+kernel/syscall.c:759:81: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+  759 | static uint64_t sys_shmctl(uint64_t shmid, uint64_t cmd, uint64_t buf, uint64_t unused1, uint64_t unused2) {
+      |                                                                        ~~~~~~~~~^~~~~~~
+kernel/syscall.c:759:99: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+  759 | static uint64_t sys_shmctl(uint64_t shmid, uint64_t cmd, uint64_t buf, uint64_t unused1, uint64_t unused2) {
+      |                                                                                          ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_clipboard_set’:
+kernel/syscall.c:1001:77: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                    ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1001:95: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                      ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1001:113: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                                        ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_clipboard_get’:
+kernel/syscall.c:1011:80: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                       ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1011:98: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                         ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1011:116: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                                           ~~~~~~~~~^~~~~~~
+kernel/syscall.c: At top level:
+kernel/syscall.c:1041: error: unterminated #if
+ 1041 | #if 0 // Duplicate syscalls - disabled
+      | 
+kernel/syscall.c:1030:17: warning: ‘sys_unlink’ defined but not used [-Wunused-function]
+ 1030 | static uint64_t sys_unlink(uint64_t path, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:1019:17: warning: ‘sys_rmdir’ defined but not used [-Wunused-function]
+ 1019 | static uint64_t sys_rmdir(uint64_t path, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:1011:17: warning: ‘sys_clipboard_get’ defined but not used [-Wunused-function]
+ 1011 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~~~~~
+kernel/syscall.c:1001:17: warning: ‘sys_clipboard_set’ defined but not used [-Wunused-function]
+ 1001 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~~~~~
+kernel/syscall.c:990:17: warning: ‘sys_mkdir’ defined but not used [-Wunused-function]
+  990 | static uint64_t sys_mkdir(uint64_t path, uint64_t mode, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:974:17: warning: ‘sys_mem_map’ defined but not used [-Wunused-function]
+  974 | static uint64_t sys_mem_map(uint64_t user_buf, uint64_t max_entries, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~
+kernel/syscall.c:963:17: warning: ‘sys_mem_info’ defined but not used [-Wunused-function]
+  963 | static uint64_t sys_mem_info(uint64_t buf, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~~~~
+kernel/syscall.c:957:17: warning: ‘sys_proc_info’ defined but not used [-Wunused-function]
+  957 | static uint64_t sys_proc_info(uint64_t buf, uint64_t max, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~
+kernel/syscall.c:947:17: warning: ‘sys_times’ defined but not used [-Wunused-function]
+  947 | static uint64_t sys_times(uint64_t buf, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:941:17: warning: ‘sb_terminate_group’ defined but not used [-Wunused-function]
+  941 | static uint64_t sb_terminate_group(uint64_t status, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~~~~~~~~~~
+kernel/syscall.c:920:17: warning: ‘sys_clock_gettime’ defined but not used [-Wunused-function]
+  920 | static uint64_t sys_clock_gettime(uint64_t clk_id, uint64_t tp, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~~~~~
+kernel/syscall.c:913:17: warning: ‘sys_time’ defined but not used [-Wunused-function]
+  913 | static uint64_t sys_time(uint64_t tloc, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~
+kernel/syscall.c:900:17: warning: ‘sys_arch_prctl’ defined but not used [-Wunused-function]
+  900 | static uint64_t sys_arch_prctl(uint64_t code, uint64_t addr, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~~
+kernel/syscall.c:895:17: warning: ‘sys_gettid’ defined but not used [-Wunused-function]
+  895 | static uint64_t sys_gettid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:890:17: warning: ‘sys_getppid’ defined but not used [-Wunused-function]
+  890 | static uint64_t sys_getppid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~
+kernel/syscall.c:885:17: warning: ‘sys_getegid’ defined but not used [-Wunused-function]
+  885 | static uint64_t sys_getegid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~
+kernel/syscall.c:880:17: warning: ‘sys_geteuid’ defined but not used [-Wunused-function]
+  880 | static uint64_t sys_geteuid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~
+kernel/syscall.c:875:17: warning: ‘sys_getgid’ defined but not used [-Wunused-function]
+  875 | static uint64_t sys_getgid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:870:17: warning: ‘sys_getuid’ defined but not used [-Wunused-function]
+  870 | static uint64_t sys_getuid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:839:17: warning: ‘sys_chdir’ defined but not used [-Wunused-function]
+  839 | static uint64_t sys_chdir(uint64_t path, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:830:17: warning: ‘sys_getcwd’ defined but not used [-Wunused-function]
+  830 | static uint64_t sys_getcwd(uint64_t buf, uint64_t size, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:814:17: warning: ‘sys_getdents’ defined but not used [-Wunused-function]
+  814 | static uint64_t sys_getdents(uint64_t fd, uint64_t dirent, uint64_t count, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~~~
+kernel/syscall.c:801:17: warning: ‘sys_uname’ defined but not used [-Wunused-function]
+  801 | static uint64_t sys_uname(uint64_t buf, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {    (void)unused1; (void)unused2; (void)unused3; (void)unused4;
+      |                 ^~~~~~~~~
+kernel/syscall.c:795:17: warning: ‘sys_console_pending’ defined but not used [-Wunused-function]
+  795 | static uint64_t sys_console_pending(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~~~~~~~~~
+kernel/syscall.c:765:17: warning: ‘sys_kill’ defined but not used [-Wunused-function]
+  765 | static uint64_t sys_kill(uint64_t pid, uint64_t sig, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~
+kernel/syscall.c:759:17: warning: ‘sys_shmctl’ defined but not used [-Wunused-function]
+  759 | static uint64_t sys_shmctl(uint64_t shmid, uint64_t cmd, uint64_t buf, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:756:17: warning: ‘sys_shmdt’ defined but not used [-Wunused-function]
+  756 | static uint64_t sys_shmdt(uint64_t shmaddr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:753:17: warning: ‘sys_shmat’ defined but not used [-Wunused-function]
+  753 | static uint64_t sys_shmat(uint64_t shmid, uint64_t shmaddr, uint64_t shmflg, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:750:17: warning: ‘sys_shmget’ defined but not used [-Wunused-function]
+  750 | static uint64_t sys_shmget(uint64_t key, uint64_t size, uint64_t flags, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:744:17: warning: ‘sb_terminate’ defined but not used [-Wunused-function]
+  744 | static uint64_t sb_terminate(uint64_t status, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~~~~
+kernel/syscall.c:669:17: warning: ‘sb_morph’ defined but not used [-Wunused-function]
+  669 | static uint64_t sb_morph(uint64_t filename, uint64_t argv, uint64_t envp, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~
+kernel/syscall.c:653:17: warning: ‘sys_getpid’ defined but not used [-Wunused-function]
+  653 | static uint64_t sys_getpid(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:644:17: warning: ‘sys_nanosleep’ defined but not used [-Wunused-function]
+  644 | static uint64_t sys_nanosleep(uint64_t req, uint64_t rem, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~
+kernel/syscall.c:632:17: warning: ‘sys_dup2’ defined but not used [-Wunused-function]
+  632 | static uint64_t sys_dup2(uint64_t oldfd, uint64_t newfd, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~
+kernel/syscall.c:624:17: warning: ‘sys_dup’ defined but not used [-Wunused-function]
+  624 | static uint64_t sys_dup(uint64_t oldfd, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~
+kernel/syscall.c:618:17: warning: ‘sys_sched_yield’ defined but not used [-Wunused-function]
+  618 | static uint64_t sys_sched_yield(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~~~~~
+kernel/syscall.c:580:17: warning: ‘sys_pipe’ defined but not used [-Wunused-function]
+  580 | static uint64_t sys_pipe(uint64_t pipefd, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~
+kernel/syscall.c:573:17: warning: ‘sys_ioctl’ defined but not used [-Wunused-function]
+  573 | static uint64_t sys_ioctl(uint64_t fd, uint64_t request, uint64_t arg, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:568:17: warning: ‘sys_rt_sigreturn’ defined but not used [-Wunused-function]
+  568 | static uint64_t sys_rt_sigreturn(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+      |                 ^~~~~~~~~~~~~~~~
+kernel/syscall.c:553:17: warning: ‘sys_rt_sigprocmask’ defined but not used [-Wunused-function]
+  553 | static uint64_t sys_rt_sigprocmask(uint64_t how, uint64_t set, uint64_t oldset, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~~~~~~~~~
+kernel/syscall.c:539:17: warning: ‘sys_rt_sigaction’ defined but not used [-Wunused-function]
+  539 | static uint64_t sys_rt_sigaction(uint64_t signum, uint64_t act, uint64_t oldact, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~~~~~~~
+kernel/syscall.c:473:17: warning: ‘sys_brk’ defined but not used [-Wunused-function]
+  473 | static uint64_t sys_brk(uint64_t brk, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~
+kernel/syscall.c:448:17: warning: ‘syscall_munmap’ defined but not used [-Wunused-function]
+  448 | static uint64_t syscall_munmap(uint64_t addr, uint64_t length, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~~~~~~
+kernel/syscall.c:412:17: warning: ‘sys_mprotect’ defined but not used [-Wunused-function]
+  412 | static uint64_t sys_mprotect(uint64_t addr, uint64_t len, uint64_t prot, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~~~
+kernel/syscall.c:380:17: warning: ‘syscall_mmap’ defined but not used [-Wunused-function]
+  380 | static uint64_t syscall_mmap(uint64_t addr, uint64_t length, uint64_t prot, uint64_t flags, uint64_t fd) {
+      |                 ^~~~~~~~~~~~
+kernel/syscall.c:366:17: warning: ‘sys_lseek’ defined but not used [-Wunused-function]
+  366 | static uint64_t sys_lseek(uint64_t fd, uint64_t offset, uint64_t whence, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:347:17: warning: ‘sys_fstat’ defined but not used [-Wunused-function]
+  347 | static uint64_t sys_fstat(uint64_t fd, uint64_t statbuf, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~~
+kernel/syscall.c:313:17: warning: ‘sys_stat’ defined but not used [-Wunused-function]
+  313 | static uint64_t sys_stat(uint64_t pathname, uint64_t statbuf, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                 ^~~~~~~~
+kernel/syscall.c:307:17: warning: ‘sb_release’ defined but not used [-Wunused-function]
+  307 | static uint64_t sb_release(uint64_t fd, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:247:17: warning: ‘sb_acquire’ defined but not used [-Wunused-function]
+  247 | static uint64_t sb_acquire(uint64_t pathname, uint64_t flags, uint64_t mode, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~~
+kernel/syscall.c:200:17: warning: ‘sb_push’ defined but not used [-Wunused-function]
+  200 | static uint64_t sb_push(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~
+kernel/syscall.c:172:17: warning: ‘sb_pull’ defined but not used [-Wunused-function]
+  172 | static uint64_t sb_pull(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~
+make: *** [Makefile:144: kernel/syscall.o] Error 1
+make: *** Waiting for unfinished jobs....
