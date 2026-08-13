@@ -107,6 +107,12 @@ void isr_handler(struct registers *regs) {
     } else if (regs->int_no >= 32 && regs->int_no < 48) {
         uint8_t irq = regs->int_no - 32;
         
+        if (irq >= 8) {
+            outb(0xA0, 0x20);
+        }
+        outb(0x20, 0x20);
+        lapic_eoi();
+
         if (irq_handlers[irq]) {
             irq_handlers[irq]();
         }
@@ -120,11 +126,5 @@ void isr_handler(struct registers *regs) {
             extern void mouse_handler(void);
             mouse_handler();
         }
-
-        if (irq >= 8) {
-            outb(0xA0, 0x20);
-        }
-        outb(0x20, 0x20);
-        lapic_eoi();
     }
 }
