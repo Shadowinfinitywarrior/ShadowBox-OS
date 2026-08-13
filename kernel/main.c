@@ -226,7 +226,7 @@ static void device_init(void) {
     boot_stage_end();
 
     boot_stage_begin("PS/2 keyboard init");
-    keyboard_init();
+    // keyboard_init(); // disabled to avoid conflict
     boot_stage_end();
 
     boot_stage_begin("PS/2 mouse init");

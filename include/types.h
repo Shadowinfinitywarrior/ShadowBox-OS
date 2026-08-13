@@ -9,17 +9,17 @@ typedef __builtin_va_list va_list;
 typedef unsigned char       uint8_t;
 typedef unsigned short      uint16_t;
 typedef unsigned int        uint32_t;
-typedef unsigned long long  uint64_t;
+typedef unsigned long uint64_t;
 
 typedef signed char         int8_t;
 typedef short               int16_t;
 typedef int                 int32_t;
-typedef long long           int64_t;
+typedef long int64_t;
 
-typedef uint64_t            size_t;
+typedef unsigned long size_t;
 typedef int64_t             ssize_t;
-typedef uint64_t            uintptr_t;
-typedef int64_t             intptr_t;
+typedef unsigned long uintptr_t;
+typedef long intptr_t;
 
 typedef int32_t             pid_t;
 typedef uint32_t            uid_t;
@@ -27,10 +27,10 @@ typedef uint32_t            gid_t;
 typedef int64_t             time_t;
 typedef int32_t             clockid_t;
 typedef uint32_t            mode_t;
-typedef uint64_t            off_t;
-typedef int64_t             nlink_t;
-typedef uint64_t            dev_t;
-typedef uint64_t            ino_t;
+typedef long off_t;
+typedef unsigned long nlink_t;
+typedef unsigned long dev_t;
+typedef unsigned long ino_t;
 
 typedef int32_t             bool;
 #define true                1
@@ -38,7 +38,9 @@ typedef int32_t             bool;
 
 #define NULL                ((void *)0)
 
+#ifndef offsetof
 #define offsetof(type, member) ((size_t)&((type *)0)->member)
+#endif
 
 #define PAGE_SIZE           4096
 

@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential qemu-system-x86 grub-common
+
+      - name: Configure CMake
+        run: cmake -B build -S .
+
+      - name: Build OS
+        run: cmake --build build
+
+      - name: Run OS in QEMU (headless)
+        run: |
+          cd build
+          make run-nox

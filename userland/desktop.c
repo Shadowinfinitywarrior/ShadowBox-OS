@@ -1,5 +1,6 @@
 #include "sys.h"
 #include "font8x8.h"
+#include "fcntl.h"
 
 typedef struct {
     uint8_t type;
@@ -194,7 +195,7 @@ static void draw_drop_shadow(int x, int y, int w, int h) {
 
 static void draw_cursor(int x, int y) {
     for(int i = 0; i < 16; i++) {
-        draw_rect_alpha(x + i, y + i, 1, 16 - i, 0x000000, 200); 
+        draw_rect_alpha(x + i, y + i, 1, 16 - i, 0xFFFFFF, 200); 
         if (i < 12) draw_rect_alpha(x + 1 + i, y + 2 + i, 1, 12 - i, 0xFFFFFF, 200); 
     }
 }
@@ -255,7 +256,8 @@ static void draw_window(window_t *w) {
         uint64_t now = sys_times(0);
         if (now - w->last_update > 50) {
             w->last_update = now;
-            sys_mem_info((uint64_t*)w->text); 
+            sys_mem_info((uint64_t*)w->text);
+// printk(KERN_INFO "SysMon free=%llu used=%llu", ((uint64_t*)w->text)[0], ((uint64_t*)w->text)[1]);
         }
         draw_string(w->x + 10, w->y + 34, "ShadowBox Kernel Statistics", 0x2C3E50);
         draw_string(w->x + 10, w->y + 54, "Memory Free: ", 0x2980B9);
@@ -489,6 +491,19 @@ void _start(void) {
     }
     
     wallpaper_buffer = (uint32_t *)sys_sbrk(SCREEN_WIDTH * SCREEN_HEIGHT * 4);
+if ((int64_t)wallpaper_buffer < 0 || !wallpaper_buffer) {
+    syscall1(SB_TERMINATE, 2);
+}
+// Initialize full-screen gradient background (brightish)
+for (int y = 0; y < SCREEN_HEIGHT; y++) {
+    uint32_t rb = (70 + (y * 70 / SCREEN_HEIGHT)) << 16;
+    uint32_t g = (30 + (y * 40 / SCREEN_HEIGHT)) << 8;
+    uint32_t b = (150 + (y * 150 / SCREEN_HEIGHT));
+    uint32_t color = rb | g | b;
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        wallpaper_buffer[y * SCREEN_WIDTH + x] = color;
+    }
+}
     int wp_fd = sb_acquire("/wallpaper.bmp", 0);
     int loaded = 0;
     if (wp_fd >= 0) {
@@ -578,16 +593,18 @@ void _start(void) {
     
     draw_desktop();
     
-    int input_fd = sb_acquire("/dev/input", 0);
+    int input_fd = sb_acquire("/dev/input", O_NONBLOCK);
     if (input_fd < 0) syscall1(SB_TERMINATE, 1);
     
     uint64_t last_draw_time = sys_times(0);
+    int dirty = 1;
 
     while (1) {
         input_event_t ev;
-        if (sb_pull(input_fd, &ev, sizeof(ev)) == sizeof(ev)) {
+        while (sb_pull(input_fd, &ev, sizeof(ev)) == sizeof(ev)) {
             if (ev.type == 2) { 
-                mouse_x += ev.x; mouse_y -= ev.y;
+                mouse_x += ev.x; mouse_y += ev.y; 
+
                 if (mouse_x < 0) mouse_x = 0;
                 if (mouse_x > SCREEN_WIDTH - 2) mouse_x = SCREEN_WIDTH - 2;
                 if (mouse_y < 0) mouse_y = 0;
@@ -597,8 +614,9 @@ void _start(void) {
                     windows[drag_win].x = mouse_x - drag_off_x;
                     windows[drag_win].y = mouse_y - drag_off_y;
                 }
+                dirty = 1;
             } else if (ev.type == 3) { 
-                if (ev.code == 1) { 
+                if (ev.code == 0 && ev.x) { // Left button press 
                     mouse_btn_down = 1;
                     int handled = 0;
                     
@@ -697,67 +715,81 @@ void _start(void) {
                             }
                         }
                     }
-                } else if (ev.code == 0) { 
+                    dirty = 1;
+                } else if (ev.code == 0 && !ev.x) { // Left button release 
                     mouse_btn_down = 0;
                     drag_win = -1;
+                    dirty = 1;
                 }
             } else if (ev.type == 0) { 
                 handle_kbd(ev.code);
+                dirty = 1;
             } else if (ev.type == 1) { 
                 if (ev.code == 0x2A || ev.code == 0x36) shift_pressed = 0;
+                dirty = 1;
             }
-            draw_desktop();
-            last_draw_time = sys_times(0);
-        } else {
-            uint64_t now = sys_times(0);
-            if (now - last_draw_time > 5) {
-                // Update Snake logic
-                for (int i = 0; i < num_windows; i++) {
-                    window_t *w = &windows[i];
-                    if (w->type == WTYPE_SNAKE && !w->snake_dead) {
-                        if (now - w->last_update > 15) { // Game speed
-                            w->last_update = now;
-                            // Move body
-                            for (int j = w->snake_len - 1; j > 0; j--) {
-                                w->snake_x[j] = w->snake_x[j-1];
-                                w->snake_y[j] = w->snake_y[j-1];
-                            }
-                            // Move head
-                            if (w->snake_dir == 0) w->snake_y[0]--;
-                            if (w->snake_dir == 1) w->snake_x[0]++;
-                            if (w->snake_dir == 2) w->snake_y[0]++;
-                            if (w->snake_dir == 3) w->snake_x[0]--;
-                            
-                            // Check wall collision
-                            int max_x = (w->w - 4) / 10;
-                            int max_y = (w->h - 24) / 10;
-                            if (w->snake_x[0] < 0 || w->snake_x[0] >= max_x ||
-                                w->snake_y[0] < 0 || w->snake_y[0] >= max_y) {
-                                w->snake_dead = 1;
-                            }
-                            
-                            // Check self collision
-                            for (int j = 1; j < w->snake_len; j++) {
-                                if (w->snake_x[0] == w->snake_x[j] && w->snake_y[0] == w->snake_y[j]) {
-                                    w->snake_dead = 1;
-                                }
-                            }
-                            
-                            // Check food
-                            if (w->snake_x[0] == w->food_x && w->snake_y[0] == w->food_y) {
-                                if (w->snake_len < 64) w->snake_len++;
-                                // Simple pseudo-random
-                                w->food_x = (sys_times(0) * 17) % max_x;
-                                w->food_y = (sys_times(0) * 31) % max_y;
-                            }
+        }
+        
+        uint64_t now = sys_times(0);
+        
+        // Cursor blink and Clock update
+        if ((now / 50) != (last_draw_time / 50)) dirty = 1;
+        if ((now / 100) != (last_draw_time / 100)) dirty = 1;
+
+        // Update Snake logic
+        for (int i = 0; i < num_windows; i++) {
+            window_t *w = &windows[i];
+            if (w->type == WTYPE_SYS_MON) {
+                if (now - w->last_update > 50) {
+                    dirty = 1;
+                }
+            } else if (w->type == WTYPE_SNAKE && !w->snake_dead) {
+                if (now - w->last_update > 15) { // Game speed
+                    w->last_update = now;
+                    // Move body
+                    for (int j = w->snake_len - 1; j > 0; j--) {
+                        w->snake_x[j] = w->snake_x[j-1];
+                        w->snake_y[j] = w->snake_y[j-1];
+                    }
+                    // Move head
+                    if (w->snake_dir == 0) w->snake_y[0]--;
+                    if (w->snake_dir == 1) w->snake_x[0]++;
+                    if (w->snake_dir == 2) w->snake_y[0]++;
+                    if (w->snake_dir == 3) w->snake_x[0]--;
+                    
+                    // Check wall collision
+                    int max_x = (w->w - 4) / 10;
+                    int max_y = (w->h - 24) / 10;
+                    if (w->snake_x[0] < 0 || w->snake_x[0] >= max_x ||
+                        w->snake_y[0] < 0 || w->snake_y[0] >= max_y) {
+                        w->snake_dead = 1;
+                    }
+                    
+                    // Check self collision
+                    for (int j = 1; j < w->snake_len; j++) {
+                        if (w->snake_x[0] == w->snake_x[j] && w->snake_y[0] == w->snake_y[j]) {
+                            w->snake_dead = 1;
                         }
                     }
+                    
+                    // Check food
+                    if (w->snake_x[0] == w->food_x && w->snake_y[0] == w->food_y) {
+                        if (w->snake_len < 64) w->snake_len++;
+                        // Simple pseudo-random
+                        w->food_x = (sys_times(0) * 17) % max_x;
+                        w->food_y = (sys_times(0) * 31) % max_y;
+                    }
+                    dirty = 1;
                 }
-                
-                draw_desktop();
-                last_draw_time = now;
             }
-            syscall0(SYS_SCHED_YIELD);
         }
+        
+        if (dirty && (now - last_draw_time >= 3)) { // Max ~33 FPS
+            draw_desktop();
+            last_draw_time = now;
+            dirty = 0;
+        }
+        
+        syscall0(SYS_SCHED_YIELD);
     }
 }

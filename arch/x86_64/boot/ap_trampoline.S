@@ -65,7 +65,7 @@ ap_trampoline_lm:
 .global ap_trampoline_end
 ap_trampoline_end:
 
-.section .data
+.section .boot.data
 .global ap_trampoline_pml4
 .global ap_trampoline_stack
 .global ap_trampoline_entry

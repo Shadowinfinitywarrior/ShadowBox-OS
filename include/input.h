@@ -4,6 +4,10 @@
 #include "types.h"
 
 // Unified Input Event Types
+#define EV_KEY 0x01
+#define EV_REL 0x02
+#define EV_ABS 0x03
+
 #define INPUT_EVENT_KEY_PRESS   0
 #define INPUT_EVENT_KEY_RELEASE 1
 #define INPUT_EVENT_MOUSE_MOVE  2
@@ -20,12 +24,23 @@
  * Used by all input drivers (keyboard, mouse, touchpad, usb hid)
  * to communicate with the GUI compositor.
  */
+/*
+ * input_dev_t - Input device descriptor
+ */
+typedef struct input_dev {
+	char name[64];
+	uint32_t capabilities;
+	uint32_t head;
+	uint32_t tail;
+	void *dev_node;
+} input_dev_t;
+
 typedef struct {
     uint8_t type;
     uint8_t code;
     int16_t x;
     int16_t y;
-    uint16_t reserved;
+    int16_t value;
 } input_event_t;
 
 /*

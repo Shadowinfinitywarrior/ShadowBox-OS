@@ -12,6 +12,8 @@
 
 extern void switch_to(struct context **old, struct context *new);
 
+volatile int need_resched;
+
 static struct process *current_proc = 0;
 struct process *proc_list = 0;
 static uint32_t next_pid = 1;

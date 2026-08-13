@@ -1,0 +1,40 @@
+make: Entering directory '/home/darkdevil404/OS'
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/main.c -o kernel/main.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/seccomp.c -o kernel/seccomp.o
+make: *** No rule to make target '\', needed by 'os.bin'.  Stop.
+make: *** Waiting for unfinished jobs....
+In file included from kernel/main.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from kernel/main.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/security.h:4,
+                 from kernel/seccomp.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/security.h:4,
+                 from kernel/seccomp.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from kernel/main.c:2:
+kernel/main.c: In function ‘init_user_thread’:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/main.c:462:12: note: in expansion of macro ‘KERN_INFO’
+  462 |     printk(KERN_INFO "ShadowBox: jumping to user mode at %llx...\n", entry_point);
+      |            ^~~~~~~~~
+kernel/main.c:462:61: note: format string is defined here
+  462 |     printk(KERN_INFO "ShadowBox: jumping to user mode at %llx...\n", entry_point);
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+make: Leaving directory '/home/darkdevil404/OS'

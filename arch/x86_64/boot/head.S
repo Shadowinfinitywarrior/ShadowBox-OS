@@ -75,9 +75,18 @@ _start:
     or $0x03, %eax
     mov %eax, boot_pdp
 
-    // PD[0] → 0x83 (2MB page, present, write, huge)
+    // PD[0..511] → 0x83, 0x1000083, ... (2MB huge pages, present/write)
+    // Identity-map + higher-half-map the full low 1GB so the Multiboot2
+    // info structure and loaded modules are readable regardless of where
+    // GRUB placed them (they routinely sit above the first 2MB).
+    mov $boot_pd, %edi
     mov $0x83, %eax
-    mov %eax, boot_pd
+    mov $512, %ecx
+1:
+    mov %eax, (%edi)
+    add $0x200000, %eax
+    add $8, %edi
+    loop 1b
 
     // PML4[511] → PDP (higher-half recursive mapping)
     mov $boot_pdp, %eax

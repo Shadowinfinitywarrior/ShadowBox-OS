@@ -2,9 +2,13 @@
 #include "io.h"
 #include "kernel.h"
 #include "task.h"
+#include "pic.h"
+#include "apic.h"
 
 #define KB_PORT 0x60
-#define KB_CMD 0x64
+#define KB_CMD  0x64
+#define PS2_STATUS_OUTPUT 0x01
+#define PS2_STATUS_AUX    0x20
 
 #define BUFFER_SIZE 256
 static char kbd_buffer[BUFFER_SIZE];
@@ -54,10 +58,14 @@ static const char kbd_us_map[128] = {
 
 static uint8_t shift_pressed = 0;
 
+static int ps2_has_keyboard_byte(void) {
+    uint8_t status = inb(KB_CMD);
+    return (status & PS2_STATUS_OUTPUT) && !(status & PS2_STATUS_AUX);
+}
+
 void keyboard_handler(void) {
-    while (!(inb(0x3F8 + 5) & 0x20));
-    outb(0x3F8, 'K');
-    uint8_t scancode = inb(KB_PORT);
+    while (ps2_has_keyboard_byte()) {
+        uint8_t scancode = inb(KB_PORT);
 
     if (scancode & 0x80) {
         // Key release
@@ -107,7 +115,10 @@ void keyboard_handler(void) {
     }
 }
 
+}
 void keyboard_init(void) {
+    pic_clear_mask(1);
+    ioapic_route_irq(1, 33, 0);
     printk(KERN_INFO "Keyboard initialized.\n");
 }
 

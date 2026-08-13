@@ -11,8 +11,7 @@ typedef unsigned long size_t;
 typedef long ptrdiff_t;
 typedef unsigned long uintptr_t;
 typedef int int32_t;
-typedef unsigned int uint_fast8_t;
-typedef int int_fast16_t;
+
 typedef short int16_t;
 typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; } timespec;
 

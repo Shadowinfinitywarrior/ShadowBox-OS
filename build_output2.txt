@@ -1,0 +1,231 @@
+make: Entering directory '/home/darkdevil404/OS'
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/main.c -o kernel/main.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/task.c -o kernel/task.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/syscall.c -o kernel/syscall.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/elf.c -o kernel/elf.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/ipc.c -o kernel/ipc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/micro_ipc.c -o kernel/micro_ipc.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/signal.c -o kernel/signal.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/kthread.c -o kernel/kthread.o
+In file included from include/task.h:4,
+                 from kernel/task.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/task.h:4,
+                 from kernel/task.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/syscall.h:4,
+                 from kernel/syscall.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/syscall.h:4,
+                 from kernel/syscall.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from kernel/main.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from kernel/main.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/kernel.h:4,
+                 from kernel/micro_ipc.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/elf.h:4,
+                 from kernel/elf.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/elf.h:4,
+                 from kernel/elf.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/types.h:7,
+                 from include/kernel.h:4,
+                 from kernel/micro_ipc.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+kernel/task.c: In function ‘do_exit’:
+kernel/task.c:77:25: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+   77 |             if (p->ppid == current_proc->pid && p != current_proc) {
+      |                         ^~
+In file included from include/signal.h:4,
+                 from kernel/signal.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/kthread.h:4,
+                 from kernel/kthread.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/kthread.h:4,
+                 from kernel/kthread.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/types.h:7,
+                 from include/signal.h:4,
+                 from kernel/signal.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+kernel/syscall.c: In function ‘sys_pipe’:
+kernel/syscall.c:575:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  575 |     for (int i = 0; i < sizeof(struct pipe); i++) ((char*)p)[i] = 0;
+      |                       ^
+kernel/syscall.c: In function ‘sys_dup2’:
+kernel/syscall.c:627:15: warning: comparison of unsigned expression in ‘< 0’ is always false [-Wtype-limits]
+  627 |     if (newfd < 0 || newfd >= MAX_FDS) return -EBADF;
+      |               ^
+kernel/syscall.c: At top level:
+In file included from include/ipc.h:4,
+                 from kernel/ipc.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+kernel/syscall.c:740:17: error: conflicting types for ‘sys_wait4’; have ‘uint64_t(uint64_t,  uint64_t,  uint64_t,  uint64_t,  uint64_t)’ {aka ‘long unsigned int(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’}
+  740 | static uint64_t sys_wait4(uint64_t pid, uint64_t wstatus, uint64_t options, uint64_t unused1, uint64_t unused2) {
+      |                 ^~~~~~~~~
+In file included from include/types.h:7,
+                 from include/ipc.h:4,
+                 from kernel/ipc.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from kernel/syscall.c:13:
+include/wait.h:12:10: note: previous declaration of ‘sys_wait4’ with type ‘uint64_t(uint64_t,  uint64_t,  uint64_t)’ {aka ‘long unsigned int(long unsigned int,  long unsigned int,  long unsigned int)’}
+   12 | uint64_t sys_wait4(uint64_t pid, uint64_t wstatus, uint64_t options);
+      |          ^~~~~~~~~
+kernel/syscall.c: In function ‘sys_wait4’:
+kernel/syscall.c:750:25: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+  750 |             if (p->ppid == parent->pid) {
+      |                         ^~
+kernel/syscall.c:782:23: error: ‘WNOHANG’ undeclared (first use in this function)
+  782 |         if (options & WNOHANG) return 0;
+      |                       ^~~~~~~
+kernel/syscall.c:782:23: note: each undeclared identifier is reported only once for each function it appears in
+kernel/syscall.c: In function ‘sys_clipboard_set’:
+kernel/syscall.c:1009:77: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+ 1009 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                    ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1009:95: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+ 1009 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                      ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1009:113: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+ 1009 | static uint64_t sys_clipboard_set(uint64_t user_buf, uint64_t len, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                                        ~~~~~~~~~^~~~~~~
+kernel/syscall.c: In function ‘sys_clipboard_get’:
+kernel/syscall.c:1019:80: warning: unused parameter ‘unused1’ [-Wunused-parameter]
+ 1019 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                       ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1019:98: warning: unused parameter ‘unused2’ [-Wunused-parameter]
+ 1019 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                         ~~~~~~~~~^~~~~~~
+kernel/syscall.c:1019:116: warning: unused parameter ‘unused3’ [-Wunused-parameter]
+ 1019 | static uint64_t sys_clipboard_get(uint64_t user_buf, uint64_t maxlen, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+      |                                                                                                           ~~~~~~~~~^~~~~~~
+kernel/signal.c:30:13: warning: ‘sig_default_cont’ defined but not used [-Wunused-function]
+   30 | static void sig_default_cont(int sig) {
+      |             ^~~~~~~~~~~~~~~~
+kernel/ipc.c: In function ‘pipe_create’:
+kernel/ipc.c:44:19: warning: cast between incompatible function types from ‘int (*)(pipe_buffer_t *, void *, uint32_t)’ {aka ‘int (*)(struct pipe_buffer *, void *, unsigned int)’} to ‘uint32_t (*)(struct vfs_node *, uint32_t,  uint32_t,  uint8_t *)’ {aka ‘unsigned int (*)(struct vfs_node *, unsigned int,  unsigned int,  unsigned char *)’} [-Wcast-function-type]
+   44 |     rnode->read = (read_type_t)pipe_read;
+      |                   ^
+kernel/syscall.c: In function ‘rtc_to_unix’:
+kernel/ipc.c:45:20: warning: cast between incompatible function types from ‘int (*)(pipe_buffer_t *, const void *, uint32_t)’ {aka ‘int (*)(struct pipe_buffer *, const void *, unsigned int)’} to ‘uint32_t (*)(struct vfs_node *, uint32_t,  uint32_t,  uint8_t *)’ {aka ‘unsigned int (*)(struct vfs_node *, unsigned int,  unsigned int,  unsigned char *)’} [-Wcast-function-type]
+   45 |     wnode->write = (write_type_t)pipe_write;
+      |                    ^
+kernel/syscall.c:1103:26: warning: comparison of integer expressions of different signedness: ‘int’ and ‘uint32_t’ {aka ‘unsigned int’} [-Wsign-compare]
+ 1103 |     for (int y = 1970; y < year; y++) {
+      |                          ^
+kernel/ipc.c: In function ‘shmat’:
+kernel/syscall.c: In function ‘sb_socket_create_wrapper’:
+kernel/syscall.c:1131:32: warning: implicit declaration of function ‘sb_socket_create’; did you mean ‘sb_socket_create_wrapper’? [-Wimplicit-function-declaration]
+ 1131 |     (void)u1; (void)u2; return sb_socket_create((int)domain, (int)type, (int)protocol);
+      |                                ^~~~~~~~~~~~~~~~
+      |                                sb_socket_create_wrapper
+kernel/syscall.c: In function ‘sb_socket_connect_wrapper’:
+kernel/syscall.c:1134:32: warning: implicit declaration of function ‘sb_socket_connect’; did you mean ‘sb_socket_connect_wrapper’? [-Wimplicit-function-declaration]
+ 1134 |     (void)u1; (void)u2; return sb_socket_connect((int)sockfd, (const void*)addr, (size_t)addrlen);
+      |                                ^~~~~~~~~~~~~~~~~
+      |                                sb_socket_connect_wrapper
+kernel/ipc.c:126:23: warning: implicit declaration of function ‘aslr_get_mmap_base’ [-Wimplicit-function-declaration]
+  126 |             s->virt = aslr_get_mmap_base();
+      |                       ^~~~~~~~~~~~~~~~~~
+kernel/syscall.c: In function ‘sb_socket_bind_wrapper’:
+kernel/syscall.c:1137:32: warning: implicit declaration of function ‘sb_socket_bind’; did you mean ‘sb_socket_bind_wrapper’? [-Wimplicit-function-declaration]
+ 1137 |     (void)u1; (void)u2; return sb_socket_bind((int)sockfd, (const void*)addr, (size_t)addrlen);
+      |                                ^~~~~~~~~~~~~~
+      |                                sb_socket_bind_wrapper
+kernel/ipc.c: In function ‘semop’:
+kernel/ipc.c:280:21: warning: implicit declaration of function ‘sched_enqueue’ [-Wimplicit-function-declaration]
+  280 |                     sched_enqueue(w->proc);
+      |                     ^~~~~~~~~~~~~
+kernel/syscall.c: In function ‘sb_socket_listen_wrapper’:
+kernel/syscall.c:1140:42: warning: implicit declaration of function ‘sb_socket_listen’; did you mean ‘sb_socket_listen_wrapper’? [-Wimplicit-function-declaration]
+ 1140 |     (void)u1; (void)u2; (void)u3; return sb_socket_listen((int)sockfd, (int)backlog);
+      |                                          ^~~~~~~~~~~~~~~~
+      |                                          sb_socket_listen_wrapper
+In file included from kernel/main.c:2:
+kernel/main.c: In function ‘init_user_thread’:
+include/kernel.h:22:22: warning: format ‘%llx’ expects argument of type ‘long long unsigned int’, but argument 2 has type ‘uint64_t’ {aka ‘long unsigned int’} [-Wformat=]
+   22 | #define KERN_INFO    "<6>"
+      |                      ^~~~~
+kernel/main.c:455:12: note: in expansion of macro ‘KERN_INFO’
+  455 |     printk(KERN_INFO "ShadowBox: jumping to user mode at %llx...\n", entry_point);
+      |            ^~~~~~~~~
+kernel/main.c:455:61: note: format string is defined here
+  455 |     printk(KERN_INFO "ShadowBox: jumping to user mode at %llx...\n", entry_point);
+      |                                                          ~~~^
+      |                                                             |
+      |                                                             long long unsigned int
+      |                                                          %lx
+kernel/syscall.c: In function ‘sb_socket_accept_wrapper’:
+kernel/syscall.c:1143:32: warning: implicit declaration of function ‘sb_socket_accept’; did you mean ‘sb_socket_accept_wrapper’? [-Wimplicit-function-declaration]
+ 1143 |     (void)u1; (void)u2; return sb_socket_accept((int)sockfd, (void*)addr, (size_t*)addrlen);
+      |                                ^~~~~~~~~~~~~~~~
+      |                                sb_socket_accept_wrapper
+kernel/syscall.c: In function ‘sys_fb_mmap’:
+kernel/syscall.c:1260:14: warning: unused variable ‘width’ [-Wunused-variable]
+ 1260 |     uint32_t width = fb_get_width();
+      |              ^~~~~
+kernel/syscall.c: At top level:
+kernel/syscall.c:1396:26: warning: initialized field overwritten [-Woverride-init]
+ 1396 |     [100]              = sys_times,
+      |                          ^~~~~~~~~
+kernel/syscall.c:1396:26: note: (near initialization for ‘syscall_table[100]’)
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/sched.c -o kernel/sched.o
+make: *** [Makefile:272: kernel/syscall.o] Error 1
+make: *** Waiting for unfinished jobs....
+In file included from include/sched.h:4,
+                 from kernel/sched.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/sched.h:4,
+                 from kernel/sched.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+kernel/sched.c:70:17: warning: ‘vruntime_delta’ defined but not used [-Wunused-function]
+   70 | static uint64_t vruntime_delta(struct process *p) {
+      |                 ^~~~~~~~~~~~~~
+make: Leaving directory '/home/darkdevil404/OS'

@@ -79,7 +79,7 @@ static void expand_heap(uint64_t size) {
     }
 }
 
-void *kmalloc(uint64_t size) {
+void *kmalloc(size_t size) {
     if (size == 0) return 0;
     
     size = ALIGN(size);

@@ -1,0 +1,98 @@
+make: Entering directory '/home/darkdevil404/OS'
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/hid_kbd.c -o kernel/hid_kbd.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/keyboard_shortcuts.c -o kernel/keyboard_shortcuts.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/softirq.c -o kernel/softirq.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/idle.c -o kernel/idle.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/power.c -o kernel/power.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/root.c -o kernel/root.o
+x86_64-linux-gnu-gcc -Wall -Wextra -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-pic -fno-pie -O2 -Iinclude -MMD -DSHADOWBOX_VERSION=\"973cde5-dirty\" -fno-stack-protector -c kernel/notification.c -o kernel/notification.o
+make: *** No rule to make target ' \', needed by 'os.bin'.  Stop.
+make: *** Waiting for unfinished jobs....
+In file included from include/power.h:4,
+                 from kernel/power.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/hid_kbd.h:4,
+                 from kernel/hid_kbd.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/hid_kbd.h:4,
+                 from kernel/hid_kbd.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/types.h:7,
+                 from include/power.h:4,
+                 from kernel/power.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/hid_kbd.h:4,
+                 from include/keyboard_shortcuts.h:5,
+                 from kernel/keyboard_shortcuts.c:3:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/hid_kbd.h:4,
+                 from include/keyboard_shortcuts.h:5,
+                 from kernel/keyboard_shortcuts.c:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/kernel.h:4,
+                 from kernel/idle.c:6:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/kernel.h:4,
+                 from kernel/idle.c:6:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/softirq.h:4,
+                 from kernel/softirq.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/softirq.h:4,
+                 from kernel/softirq.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+kernel/hid_kbd.c: In function ‘hid_kbd_process_report’:
+kernel/hid_kbd.c:144:9: error: ‘ev’ undeclared (first use in this function)
+  144 |         ev.keycode = keycode;
+      |         ^~
+kernel/hid_kbd.c:144:9: note: each undeclared identifier is reported only once for each function it appears in
+In file included from include/session.h:4,
+                 from include/root.h:4,
+                 from kernel/root.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/session.h:4,
+                 from include/root.h:4,
+                 from kernel/root.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+In file included from include/desktop.h:4,
+                 from kernel/notification.c:1:
+include/types.h:34: warning: "offsetof" redefined
+   34 | #define offsetof(type, member) ((size_t)&((type *)0)->member)
+      | 
+In file included from include/types.h:7,
+                 from include/desktop.h:4,
+                 from kernel/notification.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:406: note: this is the location of the previous definition
+  406 | #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+      | 
+make: *** [Makefile:274: kernel/hid_kbd.o] Error 1
+make: Leaving directory '/home/darkdevil404/OS'

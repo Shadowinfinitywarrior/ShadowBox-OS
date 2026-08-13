@@ -13,7 +13,7 @@ void malloc_init(void);
  * @size: Number of bytes to allocate
  * Returns: Pointer to allocated memory, or NULL on failure
  */
-void *kmalloc(uint64_t size);
+void *kmalloc(size_t size);
 
 /*
  * kfree - Free kernel memory

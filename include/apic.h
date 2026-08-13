@@ -72,6 +72,7 @@ void ioapic_write(uint32_t reg, uint32_t val);
  * @data: 64-bit entry data
  */
 void ioapic_set_entry(uint8_t index, uint64_t data);
+void ioapic_route_irq(uint8_t irq, uint8_t vector, uint32_t lapic_id);
 
 void apic_count_cpus(uint32_t *apic_ids, int max, int *count);
 

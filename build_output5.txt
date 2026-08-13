@@ -1,0 +1,3 @@
+make: Entering directory '/home/darkdevil404/OS'
+make: *** No rule to make target '\', needed by 'os.bin'.  Stop.
+make: Leaving directory '/home/darkdevil404/OS'

@@ -9,6 +9,9 @@ typedef struct udp_socket udp_socket_t;
 struct tcp_socket;
 typedef struct tcp_socket tcp_socket_t;
 
+struct bt_device { char name[64]; };
+typedef struct bt_device bt_device_t;
+
 /*
  * net_device_t - Network device descriptor
  * @name:        Device name

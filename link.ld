@@ -14,6 +14,7 @@ SECTIONS
         *(.boot.text)
         *(.boot.data)
         *(.boot.bss)
+*(.trampoline)
     }
 
     /* Switch to the higher-half virtual base.  Everything that follows is
