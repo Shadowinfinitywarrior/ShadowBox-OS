@@ -63,60 +63,102 @@ static int ps2_has_keyboard_byte(void) {
     return (status & PS2_STATUS_OUTPUT) && !(status & PS2_STATUS_AUX);
 }
 
-void keyboard_handler(void) {
-    while (ps2_has_keyboard_byte()) {
-        uint8_t scancode = inb(KB_PORT);
-
-    if (scancode & 0x80) {
-        // Key release
-        input_push(1, scancode & 0x7F, 0, 0);
-        scancode &= 0x7F;
-        if (scancode == 0x2A || scancode == 0x36) {
-            shift_pressed = 0;
-        }
-    } else {
-        // Key press
-        if (scancode == 0x2A || scancode == 0x36) {
-            shift_pressed = 1;
-            input_push(0, scancode, 0, 0);
-        } else {
-            char c = kbd_us_map[scancode];
-            if (c) {
-                if (shift_pressed && c >= 'a' && c <= 'z') c -= 32; // Uppercase
-                else if (shift_pressed && c == '1') c = '!';
-                else if (shift_pressed && c == '2') c = '@';
-                else if (shift_pressed && c == '3') c = '#';
-                else if (shift_pressed && c == '4') c = '$';
-                else if (shift_pressed && c == '5') c = '%';
-                else if (shift_pressed && c == '6') c = '^';
-                else if (shift_pressed && c == '7') c = '&';
-                else if (shift_pressed && c == '8') c = '*';
-                else if (shift_pressed && c == '9') c = '(';
-                else if (shift_pressed && c == '0') c = ')';
-                else if (shift_pressed && c == '-') c = '_';
-                else if (shift_pressed && c == '=') c = '+';
-                else if (shift_pressed && c == '[') c = '{';
-                else if (shift_pressed && c == ']') c = '}';
-                else if (shift_pressed && c == ';') c = ':';
-                else if (shift_pressed && c == '\'') c = '"';
-                else if (shift_pressed && c == ',') c = '<';
-                else if (shift_pressed && c == '.') c = '>';
-                else if (shift_pressed && c == '/') c = '?';
-                else if (shift_pressed && c == '\\') c = '|';
-
-                int next_head = (kbd_head + 1) % BUFFER_SIZE;
-                if (next_head != kbd_tail) {
-                    kbd_buffer[kbd_head] = c;
-                    kbd_head = next_head;
-                }
-                input_push(0, scancode, 0, 0);
-            }
-        }
+static void ps2_wait_write(void) {
+    for (int i = 0; i < 1000; i++) {
+        if (!(inb(KB_CMD) & 0x02)) return;
     }
 }
 
+static char kbd_translate(uint8_t scancode) {
+    char c = kbd_us_map[scancode & 0x7F];
+    if (!c) return 0;
+    if (shift_pressed) {
+        if (c >= 'a' && c <= 'z') c -= 32;
+        else if (c == '1') c = '!';
+        else if (c == '2') c = '@';
+        else if (c == '3') c = '#';
+        else if (c == '4') c = '$';
+        else if (c == '5') c = '%';
+        else if (c == '6') c = '^';
+        else if (c == '7') c = '&';
+        else if (c == '8') c = '*';
+        else if (c == '9') c = '(';
+        else if (c == '0') c = ')';
+        else if (c == '-') c = '_';
+        else if (c == '=') c = '+';
+        else if (c == '[') c = '{';
+        else if (c == ']') c = '}';
+        else if (c == ';') c = ':';
+        else if (c == '\'') c = '"';
+        else if (c == ',') c = '<';
+        else if (c == '.') c = '>';
+        else if (c == '/') c = '?';
+        else if (c == '\\') c = '|';
+    }
+    return c;
+}
+
+void keyboard_handler(void) {
+    static int e0_prefix = 0;
+    while (ps2_has_keyboard_byte()) {
+        uint8_t scancode = inb(KB_PORT);
+
+        if (scancode == 0xE0) {
+            e0_prefix = 1;
+            continue;
+        }
+
+        uint8_t base = scancode & 0x7F;
+        int pressed = !(scancode & 0x80);
+
+        if (!e0_prefix && (base == 0x2A || base == 0x36)) {
+            shift_pressed = pressed;
+        }
+
+        char c = 0;
+        if (!e0_prefix) {
+            c = kbd_translate(base);
+        }
+
+        if (pressed && c && !e0_prefix) {
+            int next_head = (kbd_head + 1) % BUFFER_SIZE;
+            if (next_head != kbd_tail) {
+                kbd_buffer[kbd_head] = c;
+                kbd_head = next_head;
+            }
+        }
+
+        input_push(pressed ? 0 : 1, base, c, 0);
+        e0_prefix = 0;
+    }
 }
 void keyboard_init(void) {
+    // Enable keyboard port 1
+    ps2_wait_write();
+    outb(KB_CMD, 0xAE);
+
+    // Read controller config
+    ps2_wait_write();
+    outb(KB_CMD, 0x20);
+    uint8_t cfg = inb(KB_PORT);
+
+    // bit0 = enable keyboard IRQ, bit4 = enable keyboard clock (clear = enabled)
+    cfg |= 0x01;
+    cfg &= ~0x10;
+
+    ps2_wait_write();
+    outb(KB_CMD, 0x60);
+    ps2_wait_write();
+    outb(KB_PORT, cfg);
+
+    // Reset keyboard device and enable scanning, draining any response bytes
+    ps2_wait_write();
+    outb(KB_PORT, 0xFF); // reset
+    while (inb(KB_CMD) & PS2_STATUS_OUTPUT) inb(KB_PORT);
+    ps2_wait_write();
+    outb(KB_PORT, 0xF4); // enable scanning
+    while (inb(KB_CMD) & PS2_STATUS_OUTPUT) inb(KB_PORT);
+
     pic_clear_mask(1);
     ioapic_route_irq(1, 33, 0);
     printk(KERN_INFO "Keyboard initialized.\n");

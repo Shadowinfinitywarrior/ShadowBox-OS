@@ -130,7 +130,7 @@ void mouse_process_byte(uint8_t data) {
 }
 
 void mouse_handler(void) {
-    while (inb(PS2_CMD) & PS2_STATUS_OUTPUT) {
+    while ((inb(PS2_CMD) & PS2_STATUS_OUTPUT) && (inb(PS2_CMD) & PS2_STATUS_AUX)) {
         uint8_t b = inb(PS2_DATA);
         mouse_process_byte(b);
     }
@@ -222,7 +222,6 @@ void mouse_init(void) {
 
     pic_clear_mask(12);
     ioapic_route_irq(12, 44, 0);
-    // pic_clear_mask(1); // keyboard IRQ remains masked to keep keyboard disabled
 
     printk(KERN_INFO "PS2: Mouse initialized.\n");
     mouse_start_poll_thread();

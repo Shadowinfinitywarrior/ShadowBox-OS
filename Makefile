@@ -301,10 +301,10 @@ iso: os.bin initrd.tar ahci_disk.img
 	grub-mkrescue -o os.iso isodir 2>/dev/null
 
 run-nox: iso
-	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda,debug=4 -device hda-output -device i8042 -serial stdio -display none -no-reboot
+	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda,debug=4 -device hda-output -serial stdio -display none -no-reboot
 
 run: iso
-	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda -device hda-output -device i8042 -serial stdio -no-reboot
+	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda -device hda-output -serial stdio -no-reboot
 
 debug: iso
 	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -serial stdio -s -S -no-reboot

@@ -14,12 +14,13 @@
 static void mouse_poll_thread(void *arg) {
 (void)arg;
 while (1) {
-uint8_t status = inb(PS2_CMD);
-if ((status & PS2_STATUS_OUTPUT) && (status & PS2_STATUS_AUX)) {
+uint64_t flags;
+__asm__ volatile("pushfq\npop %0\ncli\n" : "=r"(flags) : : "memory");
+while ((inb(PS2_CMD) & PS2_STATUS_OUTPUT) && (inb(PS2_CMD) & PS2_STATUS_AUX)) {
 uint8_t b = inb(PS2_DATA);
-printk(KERN_INFO "mouse_poll: byte %x\n", b);
 mouse_process_byte(b);
 }
+__asm__ volatile("push %0\npopfq\n" : : "r"(flags) : "memory");
 // Simple delay to avoid busy-wait hogging the CPU.
 for (volatile int i = 0; i < 1000; ++i) {
 __asm__ volatile("pause" ::: "memory");

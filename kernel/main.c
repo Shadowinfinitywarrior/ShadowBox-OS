@@ -225,13 +225,13 @@ static void device_init(void) {
     apic_init();
     boot_stage_end();
 
-    boot_stage_begin("PS/2 keyboard init");
-    // keyboard_init(); // disabled to avoid conflict
-    boot_stage_end();
-
     boot_stage_begin("PS/2 mouse init");
     extern void mouse_init(void);
     mouse_init();
+    boot_stage_end();
+
+    boot_stage_begin("PS/2 keyboard init");
+    keyboard_init();
     boot_stage_end();
 
     boot_stage_begin("Trackpad init");
