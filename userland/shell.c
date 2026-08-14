@@ -27,6 +27,15 @@ static void print(const char *s) {
     sb_push(1, s, strlen(s));
 }
 
+static char read_stdin(void) {
+    char c;
+    while (1) {
+        long r = (long)sb_pull(0, &c, 1);
+        if (r > 0) return c;
+        syscall0(SYS_SCHED_YIELD);
+    }
+}
+
 static void print_n(const char *s, uint64_t n) {
     sb_push(1, s, n);
 }
@@ -848,14 +857,14 @@ void _start(void) {
 
         while (i < 255) {
             char c;
-            sb_pull(0, &c, 1);
+            c = read_stdin();
             if (c == '\n' || c == '\r') { print("\n"); break; }
             else if (c == '\b' || c == 127) { if (i > 0) { print("\b \b"); i--; } }
             else if (c == '\033') {
                 char seq[3];
-                sb_pull(0, &seq[0], 1);
+                seq[0] = read_stdin();
                 if (seq[0] == '[') {
-                    sb_pull(0, &seq[1], 1);
+                    seq[1] = read_stdin();
                     if (seq[1] == 'A') {
                         if (hist_idx > 0 && hist_idx <= hist_count) {
                             hist_idx--;

@@ -209,7 +209,8 @@ ui/gui_impl.o \
 ui/layout.o \
 ui/textinput.o \
 ui/theme.o \
-ui/widget.o
+ui/widget.o \
+	ui/icon.o
 
 WM_OBJS = \
 wm/decorations.o \
@@ -245,7 +246,8 @@ kernel/main.o: kernel/main.c
 
 shell.elf: userland/shell.c
 edit.elf: userland/edit.c
-desktop.elf: userland/desktop.c
+desktop.elf: userland/desktop.c userland/desktop_icons.c gui/c/fb_draw.c gui/c/draw.c gui/asm/draw.o gui/c/fb_stub.c
+	$(CC) $(USER_CFLAGS) -no-pie -nostdlib $^ -o $@
 terminal.elf: userland/terminal.c
 calc.elf: userland/calc.c
 netstat.elf: userland/netstat.c

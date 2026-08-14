@@ -110,9 +110,7 @@ static uint32_t pipe_read_func(vfs_node_t *node, uint32_t offset, uint32_t size,
             buffer[read++] = p->buffer[p->tail++];
             p->tail %= 4096;
         } else {
-            if (p->writers <= 0) break; // EOF
-            if (read > 0) break; // Return what we have so far
-            yield();
+            break;
         }
     }
     return read;
@@ -153,13 +151,6 @@ static uint64_t sb_pull(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unus
 
 static uint64_t sb_push(uint64_t fd, uint64_t buf, uint64_t count, uint64_t unused1, uint64_t unused2) {
     (void)unused1; (void)unused2;
-    if (fd == 1 || fd == 2) {
-        if (!is_user_range(buf, count)) return -EFAULT;
-        for (uint64_t i = 0; i < count; i++) {
-            printk("%c", ((char*)buf)[i]);
-        }
-        return count;
-    }
     if (!is_user_range(buf, count)) return -EFAULT;
     struct file *file = process_fd_get(get_current_process(), fd);
      if (!file) return -EBADF;
@@ -554,11 +545,20 @@ static uint64_t sys_sched_yield(uint64_t unused1, uint64_t unused2, uint64_t unu
     return 0;
 }
 
+static void pipe_count_inc(struct file *file) {
+    if (file->node && file->node->flags == FS_PIPE) {
+        struct pipe *p = (struct pipe*)file->node->impl;
+        if (file->flags == SB_MODE_PULL) p->readers++;
+        else if (file->flags == SB_MODE_PUSH) p->writers++;
+    }
+}
+
 static uint64_t sys_dup(uint64_t oldfd, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
     (void)unused1; (void)unused2; (void)unused3; (void)unused4;
     struct process *proc = get_current_process();
     struct file *file = process_fd_get(proc, oldfd);
     if (!file) return -EBADF;
+    pipe_count_inc(file);
     return process_fd_install(proc, file);
 }
 
@@ -571,6 +571,7 @@ static uint64_t sys_dup2(uint64_t oldfd, uint64_t newfd, uint64_t unused1, uint6
     if (proc->fds[newfd]) process_fd_close(proc, newfd);
     proc->fds[newfd] = file;
     file->refcount++;
+    pipe_count_inc(file);
     return newfd;
 }
 

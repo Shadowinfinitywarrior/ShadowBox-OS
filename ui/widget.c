@@ -13,6 +13,7 @@
 #include "malloc.h"
 #define __NLINK_T_DEFINED
 #include "gui_toolkit.h"
+extern void ui_layout_pass(window_t *win);
 
 // Global focused widget
 static widget_t *focused_widget = NULL;
@@ -86,9 +87,11 @@ void widget_set_parent(widget_t *child, widget_t *parent)
     parent->children = child;
 }
 
-/* Placeholder implementations for toolkit hooks related to widgets.
-   These are intentionally no‑ops; real functionality lives elsewhere. */
-void gui_layout_pass(window_t *win) { (void)win; }
+/* Layout hook: forward to UI layout manager. */
+void gui_layout_pass(window_t *win) {
+    // Compute widget positions using the UI layout manager.
+    ui_layout_pass(win);
+}
 void gui_paint_pass(window_t *win) { (void)win; }
 void gui_mark_damage(window_t *win, widget_t *w) { (void)win; (void)w; }
 

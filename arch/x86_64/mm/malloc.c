@@ -4,7 +4,7 @@
 #include "pmm.h"
 #include "spinlock.h"
 
-#define HEAP_START 0xFFFFFFFF81000000
+#define HEAP_START 0xFFFFFFFFC1000000
 
 struct block_header {
     uint64_t size;

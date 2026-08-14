@@ -12,8 +12,6 @@
 #define O_NONBLOCK  0x800
 #define O_CLOEXEC   0x10000
 
-#define FD_CLOEXEC  1
-
 #define F_DUPFD     0
 #define F_GETFD     1
 #define F_SETFD     2

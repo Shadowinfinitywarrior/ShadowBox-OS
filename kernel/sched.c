@@ -6,12 +6,14 @@
 #include "task.h"
 #include "smp.h"
 
-static struct process **runqueue = 0;
-static size_t rq_size = 0;
+struct process **runqueue = 0;
+size_t rq_size = 0;
 static size_t rq_capacity = 0;
 static uint64_t min_vruntime = 0;
 static spinlock_t sched_lock;
 static uint64_t sched_granularity = 10000000;
+
+uint64_t g_sched_runqueue_page = 0;
 
 static const int weight_table[40] = {
     88761, 71713, 56483, 46273, 36291,
@@ -34,6 +36,19 @@ void sched_init(void) {
     spinlock_init(&sched_lock);
     rq_capacity = 64;
     runqueue = kmalloc(rq_capacity * sizeof(struct process*));
+    uint64_t cr3;
+    __asm__ volatile("mov %%cr3, %0" : "=r"(cr3));
+    uint64_t *pml4 = (uint64_t *)((cr3 & ~0xFFF) + 0xFFFFFFFF80000000);
+    uint64_t v = (uint64_t)runqueue;
+    uint64_t pml4e = pml4[(v >> 39) & 0x1FF];
+    uint64_t *pdp = (uint64_t *)((pml4e & ~0xFFF) + 0xFFFFFFFF80000000);
+    uint64_t pdpe = pdp[(v >> 30) & 0x1FF];
+    uint64_t *pd = (uint64_t *)((pdpe & ~0xFFF) + 0xFFFFFFFF80000000);
+    uint64_t pde = pd[(v >> 21) & 0x1FF];
+    uint64_t *pt = (uint64_t *)((pde & ~0xFFF) + 0xFFFFFFFF80000000);
+    uint64_t pte = pt[(v >> 12) & 0x1FF];
+    g_sched_runqueue_page = (pte & ~0xFFFULL);
+    printk("SCHED: runqueue=%p phys_page=%p\n", (void*)runqueue, (void*)g_sched_runqueue_page);
     printk("SCHED: Enhanced SMP CFS scheduler initialized\n");
 }
 

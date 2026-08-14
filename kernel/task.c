@@ -173,6 +173,12 @@ struct process *task_fork(void) {
     for (int i = 0; i < MAX_FDS; i++) {
         if (child->fds[i]) {
             child->fds[i]->refcount++;
+            if (child->fds[i]->node && child->fds[i]->node->flags == FS_PIPE) {
+                struct pipe { uint8_t buffer[4096]; uint32_t head; uint32_t tail; int readers; int writers; };
+                struct pipe *p = (struct pipe*)child->fds[i]->node->impl;
+                if (child->fds[i]->flags == 0) p->readers++;   // SB_MODE_PULL
+                else if (child->fds[i]->flags == 1) p->writers++; // SB_MODE_PUSH
+            }
         }
     }
 
@@ -328,12 +334,16 @@ int task_exec(struct process *proc, uint8_t *elf_data, uint64_t size, char **arg
     proc->brk_end = 0x60000000;
 
     for (int i = 0; i < MAX_FDS; i++) {
-        if (proc->fds[i] && (proc->fds[i]->flags & FD_CLOEXEC)) {
+        if (proc->fds[i] && (proc->fds[i]->flags & O_CLOEXEC)) {
             process_fd_close(proc, i);
         }
     }
 
     uint64_t rsp = (uint64_t)stack;
+    // We are inside a syscall (GS base = kernel per-CPU, KERNEL_GS_BASE = user GS).
+    // switch_to_user_mode iretqs directly without touching MSRs, so restore the
+    // "user state" MSRs (GS base = 0, KERNEL_GS_BASE = per-CPU) before entering user mode.
+    __asm__ volatile("swapgs" ::: "memory");
     extern void switch_to_user_mode(uint64_t rip, uint64_t rsp);
     switch_to_user_mode(entry, rsp);
     return 0;

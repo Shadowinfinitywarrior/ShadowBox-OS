@@ -1,1 +1,1 @@
-ui/font.o: ui/font.c
+ui/font.o: ui/font.c include/font.h include/types.h

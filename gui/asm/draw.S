@@ -15,20 +15,20 @@
     .type draw_pixel, @function
 
 draw_pixel:
-    // forward arguments to fb_putpixel (extern C function)
-    // rdi, rsi, rdx already hold x, y, color
+    # forward arguments to fb_putpixel (extern C function)
+    # rdi, rsi, rdx already hold x, y, color
     jmp fb_putpixel
-    // No return as fb_putpixel returns void
+    # No return as fb_putpixel returns void
     .size draw_pixel, .-draw_pixel
 
     .global clear_screen
     .type clear_screen, @function
 clear_screen:
-    // Clear the entire framebuffer to black (0)
-    // We'll call fb_get_addr, fb_get_width, fb_get_height, fb_get_pitch
-    // and then loop in assembly.
-    // For simplicity, we defer to a C helper (see draw.c) – this stub
-    // Clear the screen using fb_fill_rect
+    # Clear the entire framebuffer to black (0)
+    # We'll call fb_get_addr, fb_get_width, fb_get_height, fb_get_pitch
+    # and then loop in assembly.
+    # For simplicity, we defer to a C helper (see draw.c) – this stub
+    # Clear the screen using fb_fill_rect
     push %rbp
     push %rbx
     push %r12
@@ -43,7 +43,7 @@ clear_screen:
 
     # Get stride (pitch)
     call fb_get_pitch
-    mov %eax, %rsi               # stride
+    mov %eax, %esi               # stride
 
     # Get width
     call fb_get_width
@@ -81,7 +81,7 @@ clear_screen:
  * Arguments: rdi=x, rsi=y, rdx=w, rcx=h, r8d=color
  */
 draw_rect:
-    // Simple implementation in C; stub returns.
+    # Simple implementation in C; stub returns.
     ret
     .size draw_rect, .-draw_rect
 
@@ -92,7 +92,7 @@ draw_rect:
  * Arguments: rdi=x0, rsi=y0, rdx=x1, rcx=y1, r8d=color
  */
 draw_line:
-    // Implement line drawing using Bresenham algorithm and fb_putpixel
+    # Implement line drawing using Bresenham algorithm and fb_putpixel
     push %rbp
     push %rbx
     push %r12
@@ -205,7 +205,7 @@ draw_hline:
 
     # Get stride (pitch)
     call fb_get_pitch
-    mov %eax, %rsi               # stride
+    mov %eax, %esi               # stride
 
     # Call fb_fill_rect(fb, stride, x, y, w, 1, color)
     mov %rbx, %rdi
@@ -252,7 +252,7 @@ draw_vline:
 
     # Get stride (pitch)
     call fb_get_pitch
-    mov %eax, %rsi               # stride
+    mov %eax, %esi               # stride
 
     # Call fb_fill_rect(fb, stride, x, y, 1, h, color)
     mov %rbx, %rdi

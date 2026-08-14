@@ -67,6 +67,7 @@ namespace Colors {
     inline constexpr Color WindowBg     = 0xFF12121Au;
     inline constexpr Color BarBg        = 0xFF0E0E16u;
     inline constexpr Color Border       = 0xFF2A2A3Cu;
+    inline constexpr Color Shadow       = 0x44000000u; // semi‑transparent black for drop shadows
 }
 
 inline Color alpha_blend(Color src, Color dst) {

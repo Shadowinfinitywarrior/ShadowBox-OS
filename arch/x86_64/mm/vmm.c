@@ -247,10 +247,15 @@ uint64_t vmm_fork_address_space(uint64_t parent_cr3) {
                     }
 
                     if (entry & PAGE_WRITE) {
-                        entry &= ~PAGE_WRITE;
-                        entry |= PAGE_COW;
-                        parent_pt[pt_i] = entry;
-                        child_pt[pt_i] = entry;
+                        uint64_t pg = entry & ~0xFFFULL;
+                        if ((pg >> 12) >= pmm_total_pages()) {
+                            child_pt[pt_i] = entry;
+                        } else {
+                            entry &= ~PAGE_WRITE;
+                            entry |= PAGE_COW;
+                            parent_pt[pt_i] = entry;
+                            child_pt[pt_i] = entry;
+                        }
                     } else {
                         child_pt[pt_i] = entry;
                     }
@@ -299,11 +304,21 @@ int vmm_handle_cow_fault(uint64_t fault_addr) {
     if (!(entry & PAGE_COW)) return 0;
 
     uint64_t old_phys = entry & ~0xFFF;
+    if ((old_phys >> 12) >= pmm_total_pages()) {
+        pt[pt_idx] = (entry & ~PAGE_COW) | PAGE_WRITE;
+        invlpg(fault_addr);
+        return 1;
+    }
     uint64_t new_phys = (uint64_t)pmm_alloc_page();
     if (!new_phys) {
         panic("VMM: OOM in COW fault");
         return 0;
     }
+
+    extern uint64_t g_sched_runqueue_page;
+    if ((new_phys & ~0xFFFULL) == g_sched_runqueue_page)
+        printk(KERN_WARN "!!! COW REUSED RUNQUEUE PAGE (old=%p new=%p) !!!\n",
+               (void*)old_phys, (void*)new_phys);
 
     uint8_t *old_virt = (uint8_t *)(old_phys + 0xFFFFFFFF80000000);
     uint8_t *new_virt = (uint8_t *)(new_phys + 0xFFFFFFFF80000000);

@@ -1,6 +1,13 @@
 #include "sys.h"
+#include "../gui/c/fb_draw.h"
+#define FB_STRIDE (SCREEN_WIDTH * 4)
+
 #include "font8x8.h"
 #include "fcntl.h"
+#include "icon.h"
+#include "desktop_icons.h"
+void draw_desktop_icons(void);
+
 
 typedef struct {
     uint8_t type;
@@ -35,7 +42,7 @@ static inline void memset(void *d, int c, uint64_t n) {
     while (n--) *p++ = (uint8_t)c;
 }
 
-static inline void memcpy(void *d, const void *s, uint64_t n) {
+void memcpy(void *d, const void *s, uint64_t n) {
     uint8_t *dp = (uint8_t *)d;
     const uint8_t *sp = (const uint8_t *)s;
     while (n--) *dp++ = *sp++;
@@ -135,13 +142,55 @@ typedef struct {
     uint64_t editor_msg_at;
 
     int tab_state;
+
+    int term_buf;
+    int term_row;
+    int term_col;
+    int term_scroll;
+    int term_esc_state;
+    char term_csi[16];
+    int term_csi_len;
+    int term_csi_param[8];
+    int term_csi_nparam;
+    int term_fg;
+    int term_pipe_fd;
+    int term_write_fd;
+    int term_pid;
+    int term_eof;
+
+    int file_scroll;
 } window_t;
 
 static window_t windows[MAX_WINDOWS];
 static int num_windows = 0;
 
+#define TERM_RING_ROWS 200
+#define TERM_RING_COLS 60
+#define TERM_RING_SIZE (TERM_RING_ROWS * TERM_RING_COLS)
+#define TERM_MAX_BUFS 16
+static char term_ring_storage[TERM_MAX_BUFS][TERM_RING_SIZE];
+static uint8_t term_color_storage[TERM_MAX_BUFS][TERM_RING_SIZE];
+static int term_buf_used[TERM_MAX_BUFS];
+
+static inline char *term_ring(window_t *w) { return term_ring_storage[w->term_buf]; }
+static inline uint8_t *term_color(window_t *w) { return term_color_storage[w->term_buf]; }
+
+static int term_alloc_buf(void) {
+    for (int i = 0; i < TERM_MAX_BUFS; i++) {
+        if (!term_buf_used[i]) {
+            term_buf_used[i] = 1;
+            return i;
+        }
+    }
+    return -1;
+}
+
+static void term_free_buf(int idx) {
+    if (idx >= 0 && idx < TERM_MAX_BUFS) term_buf_used[idx] = 0;
+}
+
 static uint32_t *fb = (uint32_t *)0x78000000ULL;
-static uint32_t *backbuffer = NULL;
+uint32_t *backbuffer = NULL;
 static uint32_t *wallpaper_buffer = NULL;
 static uint32_t *logo_buffer = NULL;
 
@@ -229,7 +278,7 @@ static void draw_char(int x, int y, char c, uint32_t color) {
     }
 }
 
-static void draw_string(int x, int y, const char *s, uint32_t color) {
+void draw_string(int x, int y, const char *s, uint32_t color) {
     while (*s) {
         draw_char(x, y, *s, color);
         x += 8;
@@ -426,6 +475,18 @@ static void raise_window(int idx) {
 
 static void close_window(int idx) {
     if (idx < 0 || idx >= num_windows) return;
+    window_t *w = &windows[idx];
+    if (w->type == WTYPE_TERMINAL) {
+        if (w->term_pid > 0) {
+            sys_kill((uint64_t)w->term_pid, 9);
+            int status;
+            sys_wait4((uint64_t)w->term_pid, &status, 1);
+        }
+        if (w->term_write_fd >= 0) sb_release(w->term_write_fd);
+        if (w->term_pipe_fd >= 0) sb_release(w->term_pipe_fd);
+        term_free_buf(w->term_buf);
+        w->term_buf = -1;
+    }
     for (int j = idx; j < num_windows - 1; j++) windows[j] = windows[j + 1];
     num_windows--;
     if (painting_win == idx) painting_win = -1;
@@ -640,6 +701,212 @@ static void terminal_init(window_t *w) {
     while (prompt[j]) { w->text[row * 60 + col] = prompt[j]; col++; j++; }
     w->cursor_y = row;
     w->cursor_x = col;
+}
+
+static void term_clear(window_t *w) {
+    memset(term_ring(w), 0, TERM_RING_SIZE);
+    memset(term_color(w), 0, TERM_RING_SIZE);
+    w->term_row = 0;
+    w->term_col = 0;
+    w->term_scroll = 0;
+    w->term_esc_state = 0;
+    w->term_fg = 0;
+}
+
+static void term_shift_up(window_t *w) {
+    memcpy(term_ring(w), term_ring(w) + TERM_RING_COLS, TERM_RING_COLS * (TERM_RING_ROWS - 1));
+    memcpy(term_color(w), term_color(w) + TERM_RING_COLS, TERM_RING_COLS * (TERM_RING_ROWS - 1));
+    memset(term_ring(w) + TERM_RING_COLS * (TERM_RING_ROWS - 1), 0, TERM_RING_COLS);
+    memset(term_color(w) + TERM_RING_COLS * (TERM_RING_ROWS - 1), 0, TERM_RING_COLS);
+}
+
+static void term_put_cell(window_t *w, char c) {
+    term_ring(w)[w->term_row * TERM_RING_COLS + w->term_col] = c;
+    term_color(w)[w->term_row * TERM_RING_COLS + w->term_col] = (uint8_t)w->term_fg;
+    w->term_col++;
+    if (w->term_col >= 60) {
+        w->term_col = 0;
+        w->term_row++;
+        if (w->term_row >= 200) {
+            term_shift_up(w);
+            w->term_row = 199;
+        }
+    }
+}
+
+static void term_apply_sgr(window_t *w) {
+    for (int i = 0; i < w->term_csi_nparam; i++) {
+        int p = w->term_csi_param[i];
+        if (p == 0) w->term_fg = 0;
+        else if (p >= 30 && p <= 37) w->term_fg = p - 30 + 1;
+        else if (p >= 90 && p <= 97) w->term_fg = p - 90 + 1;
+        else if (p == 39) w->term_fg = 0;
+    }
+}
+
+static void term_putc(window_t *w, char c) {
+    switch (w->term_esc_state) {
+    case 0:
+        if (c == '\033') { w->term_esc_state = 1; return; }
+        if (c == '\n') {
+            w->term_col = 0;
+            w->term_row++;
+            if (w->term_row >= 200) { term_shift_up(w); w->term_row = 199; }
+            return;
+        }
+        if (c == '\r') { w->term_col = 0; return; }
+        if (c == '\b') {
+            if (w->term_col > 0) w->term_col--;
+            else if (w->term_row > 0) { w->term_row--; w->term_col = 59; }
+            return;
+        }
+        if (c == '\t') {
+            int stop = ((w->term_col / 8) + 1) * 8;
+            while (w->term_col < stop && w->term_col < 60) term_put_cell(w, ' ');
+            return;
+        }
+        if (c >= 32 && c < 127) { term_put_cell(w, c); return; }
+        return;
+    case 1:
+        if (c == '[') { w->term_esc_state = 2; w->term_csi_len = 0; w->term_csi_nparam = 0; return; }
+        if (c == ']') { w->term_esc_state = 3; return; }
+        w->term_esc_state = 0;
+        return;
+    case 2:
+        if (c >= '0' && c <= '9') {
+            if (w->term_csi_len < 15) w->term_csi[w->term_csi_len++] = c;
+            return;
+        }
+        if (c == ';') {
+            if (w->term_csi_nparam < 8) {
+                w->term_csi[w->term_csi_len] = 0;
+                w->term_csi_param[w->term_csi_nparam++] = (int)atoi64(w->term_csi);
+            }
+            w->term_csi_len = 0;
+            return;
+        }
+        if (c == '?') return;
+        w->term_csi[w->term_csi_len] = 0;
+        if (w->term_csi_nparam < 8) {
+            w->term_csi_param[w->term_csi_nparam++] = (int)atoi64(w->term_csi);
+        }
+        if (c == 'm') term_apply_sgr(w);
+        else if (c == 'J') {
+            if (w->term_csi_nparam && w->term_csi_param[0] == 2) term_clear(w);
+        } else if (c == 'H' || c == 'f') {
+            w->term_row = 0; w->term_col = 0;
+        } else if (c == 'A') { if (w->term_row > 0) w->term_row--; }
+        else if (c == 'B') { if (w->term_row < 199) w->term_row++; }
+        else if (c == 'C') { if (w->term_col < 59) w->term_col++; }
+        else if (c == 'D') { if (w->term_col > 0) w->term_col--; }
+        w->term_esc_state = 0;
+        return;
+    case 3:
+        if (c == 0x07) w->term_esc_state = 0;
+        else if (c == '\033') w->term_esc_state = 4;
+        return;
+    case 4:
+        w->term_esc_state = 0;
+        return;
+    }
+}
+
+static int update_terminal(window_t *w) {
+    if (w->type != WTYPE_TERMINAL) return 0;
+    if (w->term_pipe_fd < 0 || w->term_pid <= 0) return 0;
+    char buf[256];
+    long n;
+    int got = 0;
+    while ((n = (long)sb_pull(w->term_pipe_fd, buf, sizeof(buf))) > 0) {
+        got = 1;
+        for (long i = 0; i < n; i++) term_putc(w, buf[i]);
+    }
+    if (w->term_eof) return got;
+    if (n < 0) {
+        w->term_eof = 1;
+        return got;
+    }
+    int status;
+    if ((long)sys_wait4((uint64_t)w->term_pid, &status, 1) > 0) {
+        w->term_eof = 1;
+        got = 1;
+        const char *msg = "\r\n[process exited]\r\n";
+        for (int i = 0; msg[i]; i++) term_putc(w, msg[i]);
+    }
+    return got;
+}
+
+static int update_terminals(void) {
+    int got = 0;
+    for (int i = 0; i < num_windows; i++) {
+        if (update_terminal(&windows[i])) got = 1;
+    }
+    return got;
+}
+
+static void term_forward(window_t *w, char code, char ch) {
+    if (w->term_eof) return;
+    if (w->term_write_fd < 0) return;
+    update_terminal(w);
+    char buf[8];
+    int n = 0;
+    if (ch == '\n') {
+        buf[n++] = '\n';
+    } else if (ch == '\b' || ch == 127) {
+        buf[n++] = '\b';
+    } else if (ch == '\t') {
+        buf[n++] = '\t';
+    } else if (code == KSC_UP) { buf[n++] = 27; buf[n++] = '['; buf[n++] = 'A'; }
+    else if (code == KSC_DOWN) { buf[n++] = 27; buf[n++] = '['; buf[n++] = 'B'; }
+    else if (code == KSC_RIGHT) { buf[n++] = 27; buf[n++] = '['; buf[n++] = 'C'; }
+    else if (code == KSC_LEFT) { buf[n++] = 27; buf[n++] = '['; buf[n++] = 'D'; }
+    else if (code == KSC_HOME) { buf[n++] = 27; buf[n++] = '['; buf[n++] = 'H'; }
+    else if (code == KSC_END) { buf[n++] = 27; buf[n++] = '['; buf[n++] = 'F'; }
+    else if (ctrl_pressed && ch >= 'a' && ch <= 'z') {
+        buf[n++] = ch - 'a' + 1;
+    } else if (ch >= 32 && ch < 127) {
+        buf[n++] = ch;
+    } else {
+        return;
+    }
+    sb_push(w->term_write_fd, buf, n);
+}
+
+static void terminal_spawn(window_t *w) {
+    int in_pipe[2];
+    int out_pipe[2];
+    if (sys_pipe(in_pipe) != 0 || sys_pipe(out_pipe) != 0) {
+        term_free_buf(w->term_buf);
+        w->term_buf = -1;
+        w->term_pid = -1;
+        return;
+    }
+    uint64_t pid = sb_replicate();
+    if ((int64_t)pid == 0) {
+        sys_dup2(in_pipe[0], 0);
+        sys_dup2(out_pipe[1], 1);
+        sys_dup2(out_pipe[1], 2);
+        sb_release(in_pipe[0]);
+        sb_release(in_pipe[1]);
+        sb_release(out_pipe[0]);
+        sb_release(out_pipe[1]);
+        char *argv[] = {"shell.elf", 0};
+        sb_morph("shell.elf", argv, 0);
+        sb_terminate(127);
+    }
+    if ((int64_t)pid < 0) {
+        sb_release(in_pipe[0]);
+        sb_release(in_pipe[1]);
+        sb_release(out_pipe[0]);
+        sb_release(out_pipe[1]);
+        return;
+    }
+    w->term_pipe_fd = out_pipe[0];
+    w->term_write_fd = in_pipe[1];
+    sb_release(in_pipe[0]);
+    sb_release(out_pipe[1]);
+    w->term_pid = (int)pid;
+    w->term_eof = 0;
 }
 
 static void filebrowser_refresh(window_t *w) {
@@ -1042,6 +1309,7 @@ static void create_window(int type, const char *title, int x, int y, int w, int 
     if (num_windows >= MAX_WINDOWS) return;
     window_t *win = &windows[num_windows];
     memset(win, 0, sizeof(window_t));
+    win->term_buf = -1;
     win->id = num_windows;
     win->active = 1;
     win->type = type;
@@ -1054,7 +1322,15 @@ static void create_window(int type, const char *title, int x, int y, int w, int 
     win->title[i] = 0;
 
     if (type == WTYPE_TERMINAL) {
-        terminal_init(win);
+        win->term_buf = term_alloc_buf();
+        win->term_pipe_fd = -1;
+        win->term_write_fd = -1;
+        win->term_pid = -1;
+        win->term_eof = 0;
+        if (win->term_buf >= 0) {
+            terminal_init(win);
+            terminal_spawn(win);
+        }
     } else if (type == WTYPE_FILE_BRO) {
         strcpy(win->current_dir, "/");
         filebrowser_refresh(win);
@@ -1111,19 +1387,24 @@ static void create_window(int type, const char *title, int x, int y, int w, int 
 
 static void draw_window_title(window_t *w) {
     int is_top = (top_window() == w->id);
-    uint32_t title_bg = (drag_win == w->id || is_top) ? 0x2980B9 : 0x7F8C8D;
+    uint32_t title_active = 0x2C3E50;   // Dark slate for active window
+    uint32_t title_inactive = 0x34495E; // Slightly lighter for inactive
+    uint32_t title_bg = (drag_win == w->id || is_top) ? title_active : title_inactive;
 
     draw_rect(w->x, w->y, w->w, TITLE_H, title_bg);
     draw_string_limit(w->x + 10, w->y + 8, w->title, (w->w - 110) / 8, 0xFFFFFF);
 
+    // Close button (red)
     draw_rect(w->x + w->w - 24, w->y, 24, TITLE_H, 0xE74C3C);
     draw_string(w->x + w->w - 16, w->y + 8, "x", 0xFFFFFF);
 
-    draw_rect(w->x + w->w - 48, w->y, 24, TITLE_H, 0x16A085);
+    // Maximize/restore button (gray)
+    draw_rect(w->x + w->w - 48, w->y, 24, TITLE_H, 0x95A5A6);
     if (w->maximized) draw_string(w->x + w->w - 42, w->y + 8, "_", 0xFFFFFF);
     else draw_string(w->x + w->w - 42, w->y + 8, "[]", 0xFFFFFF);
 
-    draw_rect(w->x + w->w - 72, w->y, 24, TITLE_H, 0xF39C12);
+    // Minimize button (blue)
+    draw_rect(w->x + w->w - 72, w->y, 24, TITLE_H, 0x3498DB);
     draw_string(w->x + w->w - 64, w->y + 8, "-", 0xFFFFFF);
 }
 
@@ -1135,15 +1416,44 @@ static void draw_app_window(window_t *w) {
 
     if (w->type == WTYPE_TERMINAL) {
         draw_rect_alpha(x, y + TITLE_H, win_w, win_h - TITLE_H, 0x1E1E1E, 235);
+        static const uint32_t term_pal[9] = {
+            0xECF0F1, 0xE74C3C, 0x2ECC71, 0xF1C40F,
+            0x3498DB, 0x9B59B6, 0x1ABC9C, 0xECF0F1, 0xFFFFFF,
+        };
+        int total_rows = w->term_row + 1;
+        if (total_rows > 200) total_rows = 200;
+        int max_scroll = total_rows - 24;
+        if (max_scroll < 0) max_scroll = 0;
+        if (w->term_scroll > max_scroll) w->term_scroll = max_scroll;
+        if (w->term_scroll < 0) w->term_scroll = 0;
+        int start = total_rows - 24 - w->term_scroll;
+        if (start < 0) start = 0;
         for (int row = 0; row < 24; row++) {
+            int r = start + row;
+            if (r < 0 || r >= 200) break;
             for (int col = 0; col < 60; col++) {
-                char c = w->text[row * 60 + col];
-                if (c) draw_char(x + 8 + col * 8, y + TITLE_H + 8 + row * 12, c, 0x00FF00);
+                char c = term_ring(w)[r * TERM_RING_COLS + col];
+                if (c) {
+                    int ci = term_color(w)[r * TERM_RING_COLS + col];
+                    draw_char(x + 8 + col * 8, y + TITLE_H + 8 + row * 12, c, term_pal[ci & 8]);
+                }
             }
         }
-        uint64_t ticks = sys_times(0);
-        if ((ticks / 50) % 2 == 0) {
-            draw_rect(x + 8 + w->cursor_x * 8, y + TITLE_H + 8 + w->cursor_y * 12, 8, 12, 0x00FF00);
+        if (!w->term_eof) {
+            uint64_t ticks = sys_times(0);
+            if ((ticks / 50) % 2 == 0) {
+                int crow = w->term_row - start;
+                if (crow >= 0 && crow < 24) {
+                    draw_rect(x + 8 + w->term_col * 8, y + TITLE_H + 8 + crow * 12, 8, 12, 0x00FF00);
+                }
+            }
+        }
+        if (max_scroll > 0) {
+            int sb_h = (win_h - TITLE_H) * 24 / total_rows;
+            if (sb_h < 16) sb_h = 16;
+            if (sb_h > win_h - TITLE_H) sb_h = win_h - TITLE_H;
+            int sb_y = ((win_h - TITLE_H) - sb_h) * w->term_scroll / max_scroll;
+            draw_rect(x + win_w - 12, y + TITLE_H + sb_y, 8, sb_h, 0x2C3E50);
         }
     } else if (w->type == WTYPE_FILE_BRO) {
         char title_buf[200];
@@ -1154,15 +1464,26 @@ static void draw_app_window(window_t *w) {
 
         int rows = (win_h - TITLE_H - 40) / 20;
         if (rows < 0) rows = 0;
-        for (int i = 0; i < w->num_entries && i < rows; i++) {
+        int total_file_rows = w->num_entries;
+        int file_max_scroll = total_file_rows - rows;
+        if (file_max_scroll < 0) file_max_scroll = 0;
+        if (w->file_scroll > file_max_scroll) w->file_scroll = file_max_scroll;
+        if (w->file_scroll < 0) w->file_scroll = 0;
+        for (int i = w->file_scroll; i < w->num_entries && i < w->file_scroll + rows; i++) {
             uint32_t icon_color = 0x95A5A6;
             if (is_dir_name(w->entries[i].name)) icon_color = 0xF39C12;
-            int iy = y + TITLE_H + 34 + i * 20;
+            int iy = y + TITLE_H + 34 + (i - w->file_scroll) * 20;
             if (mouse_btn_down && in_rect(mouse_x, mouse_y, x + 10, iy, win_w - 20, 20)) {
                 draw_rect(x + 10, iy, win_w - 20, 20, 0xD6EAF8);
             }
             draw_rect(x + 10, iy + 2, 12, 10, icon_color);
             draw_string_limit(x + 28, iy + 3, w->entries[i].name, (win_w - 40) / 8, 0x2C3E50);
+        }
+        if (file_max_scroll > 0) {
+            int sb_h = (win_h - TITLE_H - 40) * rows / total_file_rows;
+            if (sb_h < 16) sb_h = 16;
+            int sb_y = ((win_h - TITLE_H - 40) - sb_h) * w->file_scroll / file_max_scroll;
+            draw_rect(x + win_w - 12, y + TITLE_H + 34 + sb_y, 8, sb_h, 0x95A5A6);
         }
     } else if (w->type == WTYPE_SYS_MON) {
         uint64_t now = sys_times(0);
@@ -1550,10 +1871,57 @@ static void draw_app_window(window_t *w) {
 }
 
 static void draw_resize_handle(window_t *w) {
+    // Draw window border with rounded corners
+    // Outer border 1px thick, radius 8
+    // Ensure we have a visible border distinct from background
+    // Using fb_draw_rect_round for a 1-pixel rounded rectangle
+    // Clip to screen automatically handled by fb_draw_rect_round
+    // Draw after the resize handle so it appears on top
+    // Border color: dark slate (e.g., 0x111111)
+    // Note: This will overlay the border over the window area.
+    // We'll call a helper after drawing the window.
+
     if (w->minimized) return;
     draw_rect(w->x + w->w - 10, w->y + w->h - 10, 10, 10, 0x2980B9);
     draw_line(w->x + w->w - 6, w->y + w->h - 2, w->x + w->w - 2, w->y + w->h - 6, 0xFFFFFF);
     draw_line(w->x + w->w - 6, w->y + w->h - 6, w->x + w->w - 2, w->y + w->h - 6, 0xFFFFFF);
+    // Rounded border around the window
+    fb_draw_rect_round(backbuffer, FB_STRIDE, w->x - 1, w->y - 1, w->w + 2, w->h + 2, 0x111111, 8);
+}
+
+static void draw_desktop_icon(int idx, int x, int y) {
+    // Draw a simple icon based on idx (0=Terminal,1=Files,2=SysMon,3=Calc,4=Editor,5=Paint)
+    switch (idx) {
+        case 0: // Terminal
+            draw_rect(x+4, y+8, 24, 16, 0x1E1E1E);
+            draw_char(x+8, y+12, '>', 0x00FF00);
+            break;
+        case 1: // Files (folder)
+            draw_rect(x+4, y+12, 24, 12, 0xF39C12);
+            draw_rect(x+8, y+8, 12, 4, 0xF39C12);
+            break;
+        case 2: // SysMon gauge
+            draw_rect(x+8, y+8, 16, 4, 0x2ECC71);
+            draw_rect(x+8, y+16, 16, 4, 0x2980B9);
+            break;
+        case 3: // Calc pad
+            for (int r = 0; r < 3; ++r) {
+                for (int c = 0; c < 3; ++c) {
+                    draw_rect(x+4 + c*8, y+4 + r*8, 6, 6, 0xECF0F1);
+                }
+            }
+            break;
+        case 4: // Editor (pencil)
+            draw_line(x+8, y+24, x+24, y+8, 0xFFFFFF);
+            draw_rect(x+22, y+6, 2, 2, 0x000000);
+            break;
+        case 5: // Paint palette
+            draw_circle(x+16, y+16, 12, 0xE74C3C, 1);
+            draw_rect(x+10, y+10, 2, 2, 0x2ECC71);
+            draw_rect(x+22, y+10, 2, 2, 0x3498DB);
+            draw_rect(x+16, y+22, 2, 2, 0xF1C40F);
+            break;
+    }
 }
 
 static void draw_window(window_t *w) {
@@ -1573,24 +1941,10 @@ static void draw_window(window_t *w) {
     draw_resize_handle(w);
 }
 
-static void draw_desktop_icons(void) {
-    const char *names[6] = {"Terminal", "Files", "SysMon", "Calc", "Editor", "Paint"};
-    uint32_t colors[6] = {0x2ECC71, 0xF39C12, 0x3498DB, 0xE67E22, 0x9B59B6, 0xE74C3C};
-    int x = 40;
-    int y = 60;
-    for (int i = 0; i < 6; i++) {
-        if (i == 3) { x = 40; y = 180; }
-        if (i == 6) break;
-        if (mouse_btn_down && in_rect(mouse_x, mouse_y, x, y, 48, 40)) {
-            draw_rect(x - 2, y - 2, 52, 44, 0xFFFFFF);
-        }
-        draw_rect(x, y, 48, 40, colors[i]);
-        draw_rect(x, y, 48, 1, 0xFFFFFF);
-        draw_string(x + 20, y + 16, names[i], 0xFFFFFF);
-        draw_string(x + 16, y + 46, names[i], 0xFFFFFF);
-        x += 130;
-    }
-}
+/* draw_desktop_icons implementation moved to desktop_icons.c */
+
+
+
 
 static void draw_start_menu(void) {
     if (!menu_open) return;
@@ -1790,8 +2144,8 @@ static void handle_app_click(window_t *w, int idx) {
     } else if (w->type == WTYPE_FILE_BRO) {
         int iy = w->y + TITLE_H + 34;
         int rows = (w->h - TITLE_H - 40) / 20;
-        for (int i = 0; i < w->num_entries && i < rows; i++) {
-            if (in_rect(mouse_x, mouse_y, w->x + 10, iy, w->w - 20, 20)) {
+        for (int i = w->file_scroll; i < w->num_entries && i < w->file_scroll + rows; i++) {
+            if (in_rect(mouse_x, mouse_y, w->x + 10, iy + (i - w->file_scroll) * 20, w->w - 20, 20)) {
                 if (i == 0 && strcmp(w->entries[i].name, "..") == 0) {
                     char *slash = w->current_dir;
                     char *last = NULL;
@@ -1858,11 +2212,8 @@ static void handle_menu_click(void) {
 }
 
 static int icon_at(void) {
-    int xs[6] = {40, 170, 300, 40, 170, 300};
-    int ys[6] = {60, 60, 60, 180, 180, 180};
-    for (int i = 0; i < 6; i++) {
-        if (in_rect(mouse_x, mouse_y, xs[i], ys[i], 48, 40) ||
-            in_rect(mouse_x, mouse_y, xs[i], ys[i] + 40, 48, 16)) {
+    for (int i = 0; i < NUM_DESKTOP_ICONS; i++) {
+        if (in_rect(mouse_x, mouse_y, desktop_icons[i].x - 4, desktop_icons[i].y - 4, 40, 52)) {
             return i;
         }
     }
@@ -1907,11 +2258,13 @@ static void handle_mouse_press(void) {
     int ic = icon_at();
     if (ic >= 0) {
         if (last_click_icon == ic && now - last_click_time < 30) {
-            int types[6] = {WTYPE_TERMINAL, WTYPE_FILE_BRO, WTYPE_SYS_MON, WTYPE_CALC, WTYPE_EDITOR, WTYPE_PAINT};
-            int xs[6] = {200, 120, 220, 350, 150, 200};
-            int ys[6] = {150, 120, 180, 120, 100, 100};
-            create_window(types[ic], apps[0].name, xs[ic], ys[ic], apps[0].w, apps[0].h);
-            if (ic == 0) windows[num_windows - 1].title[0] = 'T';
+            int type = desktop_icons[ic].type;
+            for (int a = 0; a < NUM_APPS; a++) {
+                if (apps[a].type == type) {
+                    create_window(type, apps[a].name, apps[a].x, apps[a].y, apps[a].w, apps[a].h);
+                    break;
+                }
+            }
             last_click_icon = -1;
         } else {
             last_click_icon = ic;
@@ -2101,6 +2454,11 @@ static void handle_key(char code, char ch) {
         return;
     }
 
+    if (w->type == WTYPE_TERMINAL) {
+        term_forward(w, code, ch);
+        return;
+    }
+
     if (w->type == WTYPE_TERMINAL || w->type == WTYPE_EDITOR) {
         if (ctrl_pressed && ch == 's') {
             editor_save(w);
@@ -2139,6 +2497,37 @@ static void handle_key(char code, char ch) {
         }
         return;
     }
+}
+
+static void scroll_top_window(int amount) {
+    if (num_windows == 0) return;
+    window_t *w = &windows[top_window()];
+    if (w->type == WTYPE_TERMINAL) {
+        w->term_scroll += amount;
+        if (w->term_scroll < 0) w->term_scroll = 0;
+    } else if (w->type == WTYPE_FILE_BRO) {
+        w->file_scroll += amount;
+        if (w->file_scroll < 0) w->file_scroll = 0;
+    } else if (w->type == WTYPE_PROCMON) {
+        w->proc_scroll += amount;
+        if (w->proc_scroll < 0) w->proc_scroll = 0;
+    } else if (w->type == WTYPE_HEXVIEW) {
+        w->hex_offset += amount * 16;
+        if (w->hex_offset < 0) w->hex_offset = 0;
+    }
+}
+
+static void cycle_windows(int dir) {
+    if (num_windows < 2) return;
+    window_t tmp = windows[num_windows - 1];
+    if (dir > 0) {
+        for (int i = num_windows - 1; i > 0; i--) windows[i] = windows[i - 1];
+        windows[0] = tmp;
+    } else {
+        for (int i = 0; i < num_windows - 1; i++) windows[i] = windows[i + 1];
+        windows[num_windows - 1] = tmp;
+    }
+    for (int i = 0; i < num_windows; i++) windows[i].id = i;
 }
 
 static void update_games(void) {
@@ -2402,6 +2791,17 @@ void _start(void) {
                         handle_mouse_release();
                     }
                     dirty = 1;
+                } else if (ev.code == 3) {
+                    scroll_top_window(ev.y);
+                    dirty = 1;
+                }
+            } else if (ev.type == 4) {
+                if (ev.code == 0) {
+                    scroll_top_window(ev.y > 0 ? -1 : 1);
+                    dirty = 1;
+                } else if (ev.code == 2) {
+                    cycle_windows(ev.x >= 0 ? 1 : -1);
+                    dirty = 1;
                 }
             } else if (ev.type == 0) {
                 char ch = (char)ev.x;
@@ -2427,6 +2827,8 @@ void _start(void) {
 
         if ((now / 50) != (last_draw_time / 50)) dirty = 1;
         if ((now / 100) != (last_draw_time / 100)) dirty = 1;
+
+        if (update_terminals()) dirty = 1;
 
         update_games();
         for (int i = 0; i < num_windows; i++) {

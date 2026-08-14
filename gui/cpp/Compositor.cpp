@@ -145,6 +145,22 @@ Colors::WindowBg);
 }
 
 // Repaint all roots (back-to-front) for each dirty region
+	// Draw drop shadows for each root window (visual depth)
+	const int SHADOW_OFFSET = 4;
+	for (int d = 0; d < dirty_count_; ++d) {
+	    const Rect& dr = dirty_[d];
+	    for (int i = 0; i < root_count_; ++i) {
+	        Rect sr = roots_[i]->screen_rect();
+	        Rect shadow = { sr.x + SHADOW_OFFSET, sr.y + SHADOW_OFFSET, sr.w, sr.h };
+	        if (shadow.intersects(dr)) {
+	            Rect draw = shadow.intersection(dr);
+	            fb_fill_rect(target, tstride,
+	                         draw.x, draw.y, draw.w, draw.h,
+	                         Colors::Shadow);
+	        }
+	    }
+	}
+
 for (int d = 0; d < dirty_count_; ++d) {
 const Rect& dr = dirty_[d];
 for (int i = 0; i < root_count_; ++i)

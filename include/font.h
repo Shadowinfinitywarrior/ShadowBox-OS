@@ -262,4 +262,17 @@ static const uint8_t font8x16[256 * 16] = {
     /* 0xff */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
+/* Font descriptor and simple API */
+typedef struct {
+    const char *name;
+    int size;
+} font_t;
+
+/* Load the built‑in bitmap font. */
+int font_load(const char *path, font_t *out);
+
+/* Render text with grayscale anti‑aliasing onto a 32‑bit ARGB framebuffer. */
+int font_render(const font_t *font, const char *text, void *framebuffer,
+                int width, int height);
+
 #endif
