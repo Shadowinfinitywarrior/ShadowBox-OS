@@ -21,3 +21,6 @@ isodir/
 
 # Tool config
 .mimocode/
+
+# Python
+__pycache__/

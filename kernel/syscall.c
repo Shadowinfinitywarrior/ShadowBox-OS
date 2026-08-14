@@ -250,12 +250,17 @@ static uint64_t sys_stat(uint64_t pathname, uint64_t statbuf, uint64_t unused1, 
     name[127] = 0;
 
     struct process *proc = get_current_process();
-    extern vfs_node_t *fs_root;
-    vfs_node_t *node = vfs_finddir(proc->cwd, name);
-    if (!node) {
-        node = vfs_finddir(fs_root, name);
-        if (!node) return -ENOENT;
+    char last_comp[128];
+    vfs_node_t *dir = vfs_resolve_path(name, proc->cwd, last_comp);
+    if (!dir) return -ENOENT;
+
+    vfs_node_t *node;
+    if (last_comp[0] == 0) {
+        node = dir;
+    } else {
+        node = vfs_finddir(dir, last_comp);
     }
+    if (!node) return -ENOENT;
 
     struct stat *st = (struct stat*)statbuf;
     for (uint64_t j = 0; j < sizeof(struct stat); j++) ((char*)st)[j] = 0;
@@ -978,11 +983,17 @@ static uint64_t sys_access(uint64_t path, uint64_t mode, uint64_t unused1, uint6
     name[i] = 0;
     // Check tmpfs
     if (tmpfs_access(name) == 0) return 0;
-    // Check root fs
-    extern vfs_node_t *fs_root;
+    // Resolve path relative to cwd (handles absolute and relative paths)
     struct process *proc = get_current_process();
-    vfs_node_t *node = vfs_finddir(proc->cwd, name);
-    if (!node) node = vfs_finddir(fs_root, name);
+    char last_comp[128];
+    vfs_node_t *dir = vfs_resolve_path(name, proc->cwd, last_comp);
+    if (!dir) return -ENOENT;
+    vfs_node_t *node;
+    if (last_comp[0] == 0) {
+        node = dir;
+    } else {
+        node = vfs_finddir(dir, last_comp);
+    }
     if (node) return 0;
     return -ENOENT;
 }

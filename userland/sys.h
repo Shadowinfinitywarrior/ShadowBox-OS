@@ -46,6 +46,11 @@ typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; }
 #define SYS_ACCESS   21
 #define SYS_MOUNT    169
 #define SYS_UMOUNT2  52
+#define SYS_STAT     4
+#define SYS_UNAME    63
+#define SYS_GETTIMEOFDAY 96
+#define SYS_TIME     201
+#define SYS_SYNC     162
 
 struct proc_info {
     uint32_t pid;
@@ -245,6 +250,18 @@ static inline int sys_nanosleep(uint64_t sec, uint64_t nsec) {
 
 static inline int sys_chmod(const char *pathname, int mode) {
     return (int)syscall2(90, (uint64_t)pathname, (uint64_t)mode);
+}
+
+static inline uint64_t sys_time(void) {
+    return syscall0(SYS_TIME);
+}
+
+static inline uint64_t sys_gettimeofday(uint64_t *tv) {
+    return syscall1(SYS_GETTIMEOFDAY, (uint64_t)tv);
+}
+
+static inline int sys_sync(void) {
+    return (int)syscall0(SYS_SYNC);
 }
 
 static inline int sys_chown(const char *pathname, int owner, int group) {

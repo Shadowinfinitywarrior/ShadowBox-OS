@@ -282,3 +282,9 @@ int main(void) {
     }
     return 0;
 }
+
+void _start(void) __attribute__((noreturn));
+void _start(void) {
+    sb_terminate(main());
+    for (;;) {}
+}

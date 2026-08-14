@@ -269,6 +269,14 @@ sleep.elf: userland/sleep.c
 chmod.elf: userland/chmod.c
 chown.elf: userland/chown.c
 rev.elf: userland/rev.c
+sort.elf: userland/sort.c
+tee.elf: userland/tee.c
+which.elf: userland/which.c
+yes.elf: userland/yes.c
+true.elf: userland/true.c
+false.elf: userland/false.c
+search.elf: userland/search.c
+hexedit.elf: userland/hexedit.c
 
 os.bin: $(OBJS) link.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
@@ -283,8 +291,8 @@ ahci_disk.img:
 	dd if=/dev/zero of=ahci_disk.img bs=1M count=10 2>/dev/null
 	mke2fs -t ext2 -F ahci_disk.img
 
-initrd.tar: shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf userland/wallpaper.bmp userland/logo.bmp
-	tar -cf initrd.tar shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf -C userland wallpaper.bmp logo.bmp
+initrd.tar: shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf userland/wallpaper.bmp userland/logo.bmp userland/test_data.txt
+	tar -cf initrd.tar shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf -C userland wallpaper.bmp logo.bmp test_data.txt
 
 iso: os.bin initrd.tar ahci_disk.img
 	mkdir -p isodir/boot/grub
@@ -321,7 +329,7 @@ size: os.bin
 	x86_64-linux-gnu-size os.bin
 
 clean:
-	rm -f $(OBJS) $(DEPS) os.bin os.iso shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf userland/*.o initrd.tar ahci_disk.img
+	rm -f $(OBJS) $(DEPS) os.bin os.iso shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf userland/*.o initrd.tar ahci_disk.img
 	rm -rf isodir
 	rm -f objdump.txt
 

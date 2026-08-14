@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
             sb_terminate(1);
         }
     }
-
     const uint64_t CHUNK = 65536;
     char *data = (char *)sys_sbrk(CHUNK);
     uint64_t cap = CHUNK, used = 0;
@@ -63,4 +62,10 @@ int main(int argc, char **argv) {
     }
     sb_terminate(0);
     return 0;
+}
+
+void _start(int argc, char **argv) __attribute__((noreturn));
+void _start(int argc, char **argv) {
+    sb_terminate(main(argc, argv));
+    for (;;) {}
 }
