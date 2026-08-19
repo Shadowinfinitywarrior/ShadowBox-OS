@@ -193,10 +193,11 @@ void isr_handler(struct registers *regs) {
         if (irq == 0) {
             extern void pit_handler(void);
             pit_handler();
-        } else if (irq == 1) {
+        } else         if (irq == 1) {
             extern void keyboard_handler(void);
             keyboard_handler();
         } else if (irq == 12) {
+            printk(KERN_DEBUG "IRQ12 fired (mouse)\n");
             extern void mouse_handler(void);
             mouse_handler();
         }

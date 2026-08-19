@@ -61,7 +61,7 @@ static size_t _align_up(size_t n) {
     return (n + ALIGN - 1) & ~(ALIGN - 1);
 }
 
-static void *malloc(size_t size) {
+__attribute__((weak)) void *malloc(size_t size) {
     if (size == 0) return NULL;
     size = _align_up(size);
 
@@ -93,7 +93,7 @@ static void *malloc(size_t size) {
     return (void *)(nb + 1);
 }
 
-static void free(void *ptr) {
+__attribute__((weak)) void free(void *ptr) {
     if (!ptr) return;
     block_hdr_t *b = (block_hdr_t *)ptr - 1;
     b->free = 1;
@@ -109,7 +109,7 @@ static void free(void *ptr) {
     }
 }
 
-static void *realloc(void *ptr, size_t new_size) {
+__attribute__((weak)) void *realloc(void *ptr, size_t new_size) {
     if (!ptr)     return malloc(new_size);
     if (!new_size) { free(ptr); return NULL; }
 
@@ -131,14 +131,14 @@ static void *realloc(void *ptr, size_t new_size) {
 
 /* ── Memory intrinsics ───────────────────────────────────────────────────── */
 
-static void *memcpy(void *dst, const void *src, size_t n) {
+__attribute__((weak)) void *memcpy(void *dst, const void *src, size_t n) {
     uint8_t       *d = (uint8_t *)dst;
     const uint8_t *s = (const uint8_t *)src;
     for (size_t i = 0; i < n; ++i) d[i] = s[i];
     return dst;
 }
 
-static void *memmove(void *dst, const void *src, size_t n) {
+__attribute__((weak)) void *memmove(void *dst, const void *src, size_t n) {
     uint8_t       *d = (uint8_t *)dst;
     const uint8_t *s = (const uint8_t *)src;
     if (d < s) {
@@ -149,13 +149,13 @@ static void *memmove(void *dst, const void *src, size_t n) {
     return dst;
 }
 
-static void *memset(void *dst, int c, size_t n) {
+__attribute__((weak)) void *memset(void *dst, int c, size_t n) {
     uint8_t *d = (uint8_t *)dst;
     for (size_t i = 0; i < n; ++i) d[i] = (uint8_t)c;
     return dst;
 }
 
-static int memcmp(const void *a, const void *b, size_t n) {
+__attribute__((weak)) int memcmp(const void *a, const void *b, size_t n) {
     const uint8_t *pa = (const uint8_t *)a;
     const uint8_t *pb = (const uint8_t *)b;
     for (size_t i = 0; i < n; ++i) {
@@ -164,7 +164,7 @@ static int memcmp(const void *a, const void *b, size_t n) {
     return 0;
 }
 
-static int strcmp(const char *s1, const char *s2) {
+__attribute__((weak)) int strcmp(const char *s1, const char *s2) {
     while (*s1 && *s1 == *s2) { s1++; s2++; }
     return (unsigned char)*s1 - (unsigned char)*s2;
 }

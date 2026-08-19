@@ -24,6 +24,9 @@
 #define PROT_WRITE 0x2
 #define PROT_EXEC  0x4
 #include "tmpfs.h"
+#include "desktop.h"
+#include "wifi.h"
+#include "power.h"
 
 #define MAX_PIPES 64
 
@@ -666,6 +669,17 @@ static uint64_t sb_morph(uint64_t filename, uint64_t argv, uint64_t envp, uint64
         kenvp[envc] = 0;
     }
 
+    /* Set process name from executable filename */
+    const char *base = kname;
+    for (uint64_t j = 0; j < 127; j++) {
+        if (kname[j] == '/') { base = &kname[j + 1]; }
+        if (kname[j] == 0) break;
+    }
+    int name_len = 0;
+    while (base[name_len] && name_len < 31) name_len++;
+    memcpy(proc->name, base, name_len);
+    proc->name[name_len] = 0;
+
     int ret = task_exec(proc, data, node->length, kargv, kenvp);
     if (ret < 0) printk("execve(%s) failed: %d\n", kname, ret);
     if (kargv) {
@@ -927,6 +941,62 @@ static uint64_t sys_mem_info(uint64_t buf, uint64_t unused1, uint64_t unused2, u
     return 0;
 }
 
+/*
+ * sys_sys_status - Snapshot of system state for the taskbar system tray.
+ *   Fills a sys_status_t at buf: wifi state, bluetooth devices, uptime, memory.
+ */
+static uint64_t sys_sys_status(uint64_t buf, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+    (void)unused1; (void)unused2; (void)unused3; (void)unused4;
+    if (!is_user_range(buf, sizeof(sys_status_t))) return -EFAULT;
+    sys_status_t *st = (sys_status_t *)buf;
+    memset(st, 0, sizeof(sys_status_t));
+
+    st->uptime_ticks = boot_ticks;
+    pmm_get_info(&st->mem_total, &st->mem_used);
+
+    extern uint32_t bluetooth_device_count(void);
+    st->bt_available = 1;
+    st->bt_devices = (uint8_t)bluetooth_device_count();
+
+    wifi_device_t *wifi = wifi_get_device();
+    if (wifi) {
+        st->wifi_state = (uint8_t)wifi->state;
+        if (wifi->current_bss) {
+            for (int i = 0; i < 32 && wifi->current_bss->ssid[i]; i++)
+                st->wifi_ssid[i] = wifi->current_bss->ssid[i];
+            st->wifi_ssid[32] = 0;
+            st->wifi_signal = wifi->current_bss->signal_dbm;
+        }
+    }
+    return 0;
+}
+
+/* sys_notify_peek - Copy up to `max` pending notifications into user buffer. */
+static uint64_t sys_notify_peek(uint64_t buf, uint64_t max, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+    (void)unused1; (void)unused2; (void)unused3;
+    if (max == 0) return 0;
+    if (max > 32) max = 32;
+    if (!is_user_range(buf, max * sizeof(sys_notify_t))) return -EFAULT;
+    return notification_peek((sys_notify_t *)buf, (uint32_t)max);
+}
+
+/* sys_notify_dismiss - Remove a notification by id. */
+static uint64_t sys_notify_dismiss(uint64_t id, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+    (void)unused1; (void)unused2; (void)unused3; (void)unused4;
+    notification_dismiss((uint32_t)id);
+    return 0;
+}
+
+/* sys_power - Power management from userland.
+ * action: 0 = reboot, 1 = shutdown, 2 = suspend. */
+static uint64_t sys_power(uint64_t action, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+    (void)unused1; (void)unused2; (void)unused3; (void)unused4;
+    if (action == 0) power_reboot();
+    else if (action == 1) power_shutdown();
+    else if (action == 2) power_suspend();
+    return 0;
+}
+
 static uint64_t sys_mkdir(uint64_t path, uint64_t mode, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
     (void)unused1; (void)unused2; (void)unused3;
     if (!is_user_range(path, 1)) return -EFAULT;
@@ -1031,13 +1101,116 @@ static uint64_t sys_gettimeofday(uint64_t tv, uint64_t tz, uint64_t unused1, uin
         uint8_t sec, min, hour, day, month;
         uint32_t year;
         rtc_get_time(&sec, &min, &hour, &day, &month, &year);
-        uint64_t unix_time = rtc_to_unix(year, month, day, hour, min, sec);
+        int64_t unix_time = (int64_t)rtc_to_unix(year, month, day, hour, min, sec);
+        unix_time += time_get_adjust();                  /* NTP correction */
+        unix_time += (int64_t)time_get_timezone_offset() * 60; /* time zone */
         uint64_t *ptr = (uint64_t*)tv;
-        ptr[0] = unix_time;
+        ptr[0] = (uint64_t)unix_time;
         ptr[1] = 0; // usec 
         return 0;
     }
     return -EFAULT;
+}
+
+/*
+ * sys_timezone - Get/set the kernel time zone offset.
+ *   action 0 = get (returns offset in minutes)
+ *   action 1 = set offset in minutes (arg2)
+ */
+static uint64_t sys_timezone(uint64_t action, uint64_t offset, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+    (void)unused1; (void)unused2; (void)unused3;
+    if (action == 0) {
+        return (uint64_t)(int64_t)time_get_timezone_offset();
+    } else if (action == 1) {
+        if (offset > 14 * 60 || offset < -(12 * 60)) return -EINVAL;
+        time_set_timezone_offset((int)offset);
+        return 0;
+    }
+    return -EINVAL;
+}
+
+/*
+ * sys_dns_resolve - Resolve a hostname to an IPv4 address.
+ *   arg1 = user pointer to NUL-terminated hostname
+ *   arg2 = user pointer to uint32_t output (big-endian on the wire)
+ */
+static uint64_t sys_dns_resolve(uint64_t name_ptr, uint64_t out_ptr, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+    (void)unused1; (void)unused2; (void)unused3;
+    char name[256];
+    int i;
+    if (!is_user_range(name_ptr, 1) || !is_user_range(out_ptr, 4)) return -EFAULT;
+    for (i = 0; i < 255; i++) {
+        name[i] = ((char *)name_ptr)[i];
+        if (!name[i]) break;
+    }
+    name[255] = 0;
+    if (i == 255) return -EINVAL;
+    uint32_t ip = 0;
+    int rc = dns_resolve(name, &ip);
+    if (rc == 0) {
+        uint32_t *out = (uint32_t *)out_ptr;
+        out[0] = ((ip >> 24) & 0xFF) | ((ip >> 8) & 0xFF00) |
+                 ((ip << 8) & 0xFF0000) | ((ip << 24) & 0xFF000000);
+    }
+    return rc;
+}
+
+/*
+ * sys_ntp_sync - Sync the kernel clock against an NTP server.
+ *   arg1 = server IPv4 address (network byte order)
+ *   arg2 = user pointer to int64_t offset output (may be 0)
+ */
+static uint64_t sys_ntp_sync(uint64_t server_ip, uint64_t off_ptr, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+    (void)unused1; (void)unused2; (void)unused3;
+    if (off_ptr && !is_user_range(off_ptr, 8)) return -EFAULT;
+    int64_t offset = 0;
+    int rc = ntp_sync((uint32_t)server_ip, &offset);
+    if (rc == 0 && off_ptr) {
+        ((int64_t *)off_ptr)[0] = offset;
+    }
+    return rc;
+}
+
+/*
+ * sys_ping - ICMP echo request; returns RTT in ms or -1.
+ *   arg1 = destination IPv4 (network byte order)
+ *   arg2 = timeout in milliseconds
+ */
+static uint64_t sys_ping(uint64_t ip, uint64_t timeout_ms, uint64_t unused1, uint64_t unused2, uint64_t unused3) {
+    (void)unused1; (void)unused2; (void)unused3;
+    return (uint64_t)(int64_t)net_ping((uint32_t)ip, (uint32_t)timeout_ms);
+}
+
+/*
+ * sys_netinfo - Copy network device info to a user struct.
+ *   arg1 = user pointer to struct sb_netinfo
+ */
+static uint64_t sys_netinfo(uint64_t ptr, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+    (void)unused1; (void)unused2; (void)unused3; (void)unused4;
+    extern net_device_t *net_devices;
+    if (!ptr) return -EFAULT;
+    if (!net_devices) return -ENODEV;
+    if (!is_user_range(ptr, 4 + 4 + 4 + 4 + 6 + 1 + 16)) return -EFAULT;
+    net_device_t *dev = net_devices;
+    uint8_t *u = (uint8_t *)ptr;
+    uint32_t ip = ((dev->ip >> 24) & 0xFF) | ((dev->ip >> 8) & 0xFF00) |
+                  ((dev->ip << 8) & 0xFF0000) | ((dev->ip << 24) & 0xFF000000);
+    uint32_t nm = ((dev->netmask >> 24) & 0xFF) | ((dev->netmask >> 8) & 0xFF00) |
+                  ((dev->netmask << 8) & 0xFF0000) | ((dev->netmask << 24) & 0xFF000000);
+    uint32_t gw = ((dev->gateway >> 24) & 0xFF) | ((dev->gateway >> 8) & 0xFF00) |
+                  ((dev->gateway << 8) & 0xFF0000) | ((dev->gateway << 24) & 0xFF000000);
+    uint32_t dn = ((dns_get_server() >> 24) & 0xFF) | ((dns_get_server() >> 8) & 0xFF00) |
+                  ((dns_get_server() << 8) & 0xFF0000) | ((dns_get_server() << 24) & 0xFF000000);
+    ((uint32_t *)u)[0] = ip;
+    ((uint32_t *)u)[1] = nm;
+    ((uint32_t *)u)[2] = gw;
+    ((uint32_t *)u)[3] = dn;
+    for (int i = 0; i < 6; i++) u[16 + i] = dev->mac[i];
+    u[22] = dev->ip != 0 ? 1 : 0; /* link */
+    int nl = 0;
+    while (dev->name[nl] && nl < 15) { u[23 + nl] = dev->name[nl]; nl++; }
+    u[23 + nl] = 0;
+    return 0;
 }
 
 static uint64_t sb_socket_create_wrapper(uint64_t domain, uint64_t type, uint64_t protocol, uint64_t u1, uint64_t u2) {
@@ -1324,6 +1497,15 @@ static uint64_t (*syscall_table[])(uint64_t, uint64_t, uint64_t, uint64_t, uint6
     [SYS_UMOUNT2]      = sys_umount2,
     [SYS_FB_MMAP]      = sys_fb_mmap,
     [SYS_FB_INFO]      = sys_fb_info,
+    [SYS_SYS_STATUS]   = sys_sys_status,
+    [SYS_NOTIFY_PEEK]  = sys_notify_peek,
+    [SYS_NOTIFY_DISMISS] = sys_notify_dismiss,
+    [SYS_POWER]          = sys_power,
+    [SYS_TIMEZONE]       = sys_timezone,
+    [SYS_DNS_RESOLVE]    = sys_dns_resolve,
+    [SYS_NTP_SYNC]       = sys_ntp_sync,
+    [SYS_PING]           = sys_ping,
+    [SYS_NETINFO]        = sys_netinfo,
     [SB_IPC_CALL]        = sys_sb_ipc_call,
     [SB_IPC_REPLY_WAIT]  = sys_sb_ipc_reply_wait,
 };

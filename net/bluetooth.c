@@ -33,8 +33,8 @@ int bluetooth_register_device(bt_device_t *dev)
     if (!dev || !dev->name)
         return -EINVAL;
 
-    // dev->next = bluetooth_devices; // bt_device_t has no next
-    // bluetooth_devices = dev;
+    dev->next = bluetooth_devices;
+    bluetooth_devices = dev;
     return 0;
 }
 
@@ -60,4 +60,17 @@ int bluetooth_receive_packet(bt_device_t *dev, void *buffer, uint32_t max_len)
 void bluetooth_cleanup(void)
 {
     printk(KERN_INFO "BLUETOOTH: cleanup stub\n");
+}
+
+/* Return the number of registered Bluetooth devices. */
+uint32_t bluetooth_device_count(void)
+{
+    uint32_t count = 0;
+    bt_device_t *dev = bluetooth_devices;
+
+    while (dev) {
+        count++;
+        dev = dev->next;
+    }
+    return count;
 }

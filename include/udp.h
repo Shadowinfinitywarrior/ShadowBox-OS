@@ -20,6 +20,7 @@ udp_socket_t *udp_socket_create(void);
 int udp_socket_bind(udp_socket_t *sock, uint32_t ip, uint16_t port);
 int udp_socket_sendto(udp_socket_t *sock, net_device_t *dev, uint32_t dest_ip, uint16_t dest_port, const void *data, uint32_t len);
 int udp_socket_recvfrom(udp_socket_t *sock, void *buf, uint32_t len);
+void udp_socket_destroy(udp_socket_t *sock);
 void udp_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip);
 
 #endif

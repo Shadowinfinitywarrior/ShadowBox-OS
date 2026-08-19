@@ -15,7 +15,7 @@ ShadowBox v973cde5-dirty booting on x86_64...
 - **Device drivers**: PIC/PIT/APIC/ACPI, serial, PS/2 keyboard + mouse, PCI, AHCI SATA, USB (EHCI/XHCI), HDA audio, framebuffer, RTC, RTL8139/E1000 NIC
 - **HAL layer** (`kernel/hal/`): CPU, RAM, storage, and peripheral abstractions
 - **Unified input pipeline**: PS/2 / HID / trackpad → shared ring buffer → `/dev/input` → userland
-- **Graphical desktop** (`userland/desktop.c`): window manager with drag, z-order, taskbar, scrollable start menu, and **18 built-in apps**: Terminal, File Explorer, System Monitor, Image Viewer, Calculator, Text Editor (saves to `/tmp/editor.txt`), Paint, Process Monitor, Hex Viewer, Snake, Tetris, 2048, Pong, Matrix Rain, Mandelbrot fractal viewer, Clock, Fortune, About — plus Shutdown (menu only; apps also launch via `Ctrl+Alt+<key>`: `t f m v c e p n x y g b k o w z`)
+- **Graphical desktop** (`userland/desktop.c`): window manager with drag, z-order, taskbar, scrollable start menu, and **22 built-in apps**: Terminal, File Explorer, System Monitor, Image Viewer, Calculator, Text Editor (saves to `/tmp/editor.txt`), Paint, Process Monitor, Hex Viewer, Snake, Tetris, 2048, Pong, Matrix Rain, Mandelbrot fractal viewer, Clock, Fortune, About — plus Shutdown (menu only; apps also launch via `Ctrl+Alt+<key>`: `t f m v c e p n x y g b k o w z`). The **Browser** app is a built-in HTTP text browser with an address bar, Back/Forward/Reload buttons, history, and scrolling — it fetches pages over the socket syscalls and renders the page text (no TLS, CSS or JavaScript yet; host must be an IPv4 literal).
 - **Userland CLI**: shell plus ~20 core utilities (ls, cat, calc, matrix, fortune, ...)
 
 ## Repository layout

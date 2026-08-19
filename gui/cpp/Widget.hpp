@@ -21,6 +21,7 @@
 class Compositor;
 class InputRouter;
 
+#include "Colors.hpp"
 #include "Types.hpp"
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -37,6 +38,7 @@ enum WidgetFlags : uint32_t {
     WF_CLIP      = 1u << 6,   // clip paint to own bounds
     WF_OPAQUE    = 1u << 7,   // does not need bg erase from parent
     WF_DRAGGABLE = 1u << 8,
+    WF_ANIMATED  = 1u << 9,   // has active animation
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -86,6 +88,11 @@ public:
     bool hovered()   const { return (flags_ & WF_HOVERED)   != 0; }
     bool pressed()   const { return (flags_ & WF_PRESSED)   != 0; }
     uint32_t flags() const { return flags_; }
+    uint32_t bg_color() const { return bg_color_; }
+    void set_bg_color(uint32_t c) { bg_color_ = c; mark_dirty(); }
+    uint32_t fg_color() const { return fg_color_; }
+    void set_fg_color(uint32_t c) { fg_color_ = c; mark_dirty(); }
+
     void set_flag(WidgetFlags f, bool on);
 
     // ── Paint ──────────────────────────────────────────────────────────────
@@ -116,6 +123,13 @@ public:
     VoidFn   on_clicked   = nullptr;   // shortcut fired by Button
     void*    user_data    = nullptr;
 
+    // ── Rounded rectangle & shadow support ────────────────────────────────
+    void draw_rounded_rect(const Rect& r, uint32_t corner_radius,
+                           uint32_t fill_color, uint32_t shadow_color,
+                           void* fb, uint32_t stride);
+    void draw_shadow(const Rect& r, uint32_t shadow_offset,
+                     uint32_t shadow_color, void* fb, uint32_t stride);
+
     // ── Z-order ────────────────────────────────────────────────────────────
     void raise_to_top   ();
     void lower_to_bottom();
@@ -139,6 +153,10 @@ protected:
     Rect     rect_        = {};         // relative to parent
     uint32_t flags_       = WF_VISIBLE | WF_ENABLED;
     DirtyList dirty_      = {};
+
+    // Theme colors (derived classes can override)
+    uint32_t bg_color_    = LightTheme::WindowBg;
+    uint32_t fg_color_    = LightTheme::Text;
 
     void grow_children();
 };

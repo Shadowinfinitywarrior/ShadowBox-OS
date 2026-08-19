@@ -91,6 +91,15 @@ int udp_socket_recvfrom(udp_socket_t *sock, void *buf, uint32_t len) {
     return to_copy;
 }
 
+void udp_socket_destroy(udp_socket_t *sock) {
+    if (!sock) return;
+    udp_socket_t **prev = &udp_sockets;
+    while (*prev && *prev != sock) prev = &(*prev)->next;
+    if (*prev == sock) *prev = sock->next;
+    if (sock->recv_buffer) kfree(sock->recv_buffer);
+    kfree(sock);
+}
+
 void udp_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip) {
     (void)dev;
     if (len < sizeof(struct udp_header)) return;

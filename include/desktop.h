@@ -43,6 +43,34 @@ void notification_daemon_init(void);
 uint32_t notification_send(notification_t *notify);
 void notification_dismiss(uint32_t id);
 
+/*
+ * Compact, pointer-free snapshot of system status handed to userland via the
+ * SYS_SYS_STATUS syscall. wifi_state mirrors wifi_state_t from wifi.h:
+ *   0 uninitialized, 1 scanning, 2 associating, 3 associated, 4 connected, 5 disconnected
+ */
+typedef struct {
+    uint8_t  wifi_state;
+    char     wifi_ssid[33];
+    int16_t  wifi_signal;    /* dBm */
+    uint8_t  bt_available;   /* bluetooth stack present */
+    uint8_t  bt_devices;     /* number of known BT devices */
+    uint64_t uptime_ticks;
+    uint64_t mem_total;
+    uint64_t mem_used;
+} sys_status_t;
+
+/* Pointer-free snapshot of a pending notification (SYS_NOTIFY_PEEK). */
+typedef struct {
+    uint32_t id;
+    uint8_t  priority;
+    char     app_name[64];
+    char     summary[128];
+    char     body[512];
+} sys_notify_t;
+
+/* Notification daemon queries used by syscall layer. */
+uint32_t notification_peek(sys_notify_t *out, uint32_t max);
+
 void app_launcher_init(void);
 app_index_entry_t** app_launcher_search(const char *query, uint32_t *result_count);
 app_index_entry_t** app_launcher_get_recent(uint32_t max_results);

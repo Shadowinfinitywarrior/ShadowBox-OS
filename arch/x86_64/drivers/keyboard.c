@@ -57,6 +57,7 @@ static const char kbd_us_map[128] = {
 };
 
 static uint8_t shift_pressed = 0;
+static uint8_t caps_lock = 0;
 
 static int ps2_has_keyboard_byte(void) {
     uint8_t status = inb(KB_CMD);
@@ -72,8 +73,13 @@ static void ps2_wait_write(void) {
 static char kbd_translate(uint8_t scancode) {
     char c = kbd_us_map[scancode & 0x7F];
     if (!c) return 0;
-    if (shift_pressed) {
-        if (c >= 'a' && c <= 'z') c -= 32;
+    
+    int is_alpha = (c >= 'a' && c <= 'z');
+    int do_shift = shift_pressed;
+    if (is_alpha && caps_lock) do_shift = !do_shift;
+
+    if (do_shift) {
+        if (is_alpha) c -= 32;
         else if (c == '1') c = '!';
         else if (c == '2') c = '@';
         else if (c == '3') c = '#';
@@ -94,42 +100,49 @@ static char kbd_translate(uint8_t scancode) {
         else if (c == '.') c = '>';
         else if (c == '/') c = '?';
         else if (c == '\\') c = '|';
+        else if (c == '`') c = '~';
     }
     return c;
 }
 
-void keyboard_handler(void) {
+void keyboard_handle_scancode(uint8_t scancode) {
     static int e0_prefix = 0;
+    if (scancode == 0xE0) {
+        e0_prefix = 1;
+        return;
+    }
+
+    uint8_t base = scancode & 0x7F;
+    int pressed = !(scancode & 0x80);
+
+    if (!e0_prefix && (base == 0x2A || base == 0x36)) {
+        shift_pressed = pressed;
+    }
+    if (!e0_prefix && base == 0x3A && pressed) {
+        caps_lock = !caps_lock;
+    }
+
+    char c = 0;
+    if (!e0_prefix) {
+        c = kbd_translate(base);
+    }
+
+    if (pressed && c && !e0_prefix) {
+        int next_head = (kbd_head + 1) % BUFFER_SIZE;
+        if (next_head != kbd_tail) {
+            kbd_buffer[kbd_head] = c;
+            kbd_head = next_head;
+        }
+    }
+
+    input_push(pressed ? 0 : 1, base, c, 0);
+    e0_prefix = 0;
+}
+
+void keyboard_handler(void) {
     while (ps2_has_keyboard_byte()) {
         uint8_t scancode = inb(KB_PORT);
-
-        if (scancode == 0xE0) {
-            e0_prefix = 1;
-            continue;
-        }
-
-        uint8_t base = scancode & 0x7F;
-        int pressed = !(scancode & 0x80);
-
-        if (!e0_prefix && (base == 0x2A || base == 0x36)) {
-            shift_pressed = pressed;
-        }
-
-        char c = 0;
-        if (!e0_prefix) {
-            c = kbd_translate(base);
-        }
-
-        if (pressed && c && !e0_prefix) {
-            int next_head = (kbd_head + 1) % BUFFER_SIZE;
-            if (next_head != kbd_tail) {
-                kbd_buffer[kbd_head] = c;
-                kbd_head = next_head;
-            }
-        }
-
-        input_push(pressed ? 0 : 1, base, c, 0);
-        e0_prefix = 0;
+        keyboard_handle_scancode(scancode);
     }
 }
 void keyboard_init(void) {
@@ -142,8 +155,10 @@ void keyboard_init(void) {
     outb(KB_CMD, 0x20);
     uint8_t cfg = inb(KB_PORT);
 
-    // bit0 = enable keyboard IRQ, bit4 = enable keyboard clock (clear = enabled)
+    // bit0 = enable keyboard IRQ, bit4 = enable keyboard clock, bit5 = mouse clock (clear = enabled)
+    
     cfg |= 0x01;
+    cfg &= ~0x20;
     cfg &= ~0x10;
 
     ps2_wait_write();

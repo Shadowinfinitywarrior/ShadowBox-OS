@@ -64,3 +64,44 @@ void ktime_get_ts(struct timespec *ts) {
         ts->tv_nsec = ns % 1000000000;
     }
 }
+
+/* --- Time zone / clock adjustment state --- */
+static int tz_offset_min = 0;     /* offset from UTC in minutes */
+static int64_t clock_adjust_sec = 0; /* NTP correction applied to wall clock */
+
+void time_set_timezone_offset(int minutes) {
+    tz_offset_min = minutes;
+}
+
+int time_get_timezone_offset(void) {
+    return tz_offset_min;
+}
+
+void time_set_adjust(int64_t seconds) {
+    clock_adjust_sec = seconds;
+}
+
+int64_t time_get_adjust(void) {
+    return clock_adjust_sec;
+}
+
+/* Current wall-clock time as a Unix epoch (seconds), from the RTC, before
+ * timezone/adjustment offsets are applied. */
+static int tz_days_in_month[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
+
+uint64_t rtc_unix_time_now(void) {
+    extern void rtc_get_time(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint32_t*);
+    uint8_t sec, min, hour, day, month;
+    uint32_t year;
+    rtc_get_time(&sec, &min, &hour, &day, &month, &year);
+    uint64_t days = 0;
+    for (int y = 1970; y < (int)year; y++) {
+        days += 365 + ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0));
+    }
+    for (int m = 1; m < (int)month; m++) {
+        days += tz_days_in_month[m];
+        if (m == 2 && ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))) days++;
+    }
+    days += day - 1;
+    return ((days * 24 + hour) * 60 + min) * 60 + sec;
+}

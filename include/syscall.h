@@ -79,7 +79,16 @@
 #define SYS_FB_MMAP      200
 #define SYS_INPUT_FD    201
 #define SYS_FB_INFO      202
+#define SYS_SYS_STATUS   203
+#define SYS_NOTIFY_PEEK  204
+#define SYS_NOTIFY_DISMISS 205
+#define SYS_POWER       210
 #define SYS_UMOUNT2     52
+#define SYS_TIMEZONE    211
+#define SYS_DNS_RESOLVE 212
+#define SYS_NTP_SYNC    213
+#define SYS_PING        214
+#define SYS_NETINFO     215
 
 /*
  * syscall_init - Initialize syscall handler (MSR_LSTAR setup)

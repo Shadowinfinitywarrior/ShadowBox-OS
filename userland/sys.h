@@ -58,6 +58,7 @@ struct proc_info {
     uint32_t state;
     uint64_t kstack;
     uint64_t cr3;
+    char name[32];
 };
 
 static inline uint64_t syscall3(uint64_t n, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
@@ -279,8 +280,95 @@ static inline uint64_t strlen(const char *s) {
 
 #define SYS_FB_MMAP    200
 #define SYS_FB_INFO    202
+#define SYS_SYS_STATUS 203
+#define SYS_NOTIFY_PEEK 204
+#define SYS_NOTIFY_DISMISS 205
+#define SYS_POWER      210
+#define SYS_TIMEZONE   211
+#define SYS_DNS_RESOLVE 212
+#define SYS_NTP_SYNC   213
+#define SYS_PING       214
+#define SYS_NETINFO    215
+
+typedef struct {
+    uint64_t tv_sec;
+    uint64_t tv_usec;
+} timeval_t;
+
+static inline int sys_timezone_get(void) {
+    return (int)syscall1(SYS_TIMEZONE, 0);
+}
+
+static inline int sys_timezone_set(int offset_minutes) {
+    return (int)syscall2(SYS_TIMEZONE, 1, (uint64_t)offset_minutes);
+}
+
+static inline int sb_resolve(const char *name, uint32_t *ip_out) {
+    return (int)syscall2(SYS_DNS_RESOLVE, (uint64_t)name, (uint64_t)ip_out);
+}
+
+static inline int sb_ntp_sync(uint32_t server_ip, int64_t *offset_out) {
+    return (int)syscall2(SYS_NTP_SYNC, (uint64_t)server_ip, (uint64_t)offset_out);
+}
+
+static inline int sb_ping(uint32_t ip, uint32_t timeout_ms) {
+    return (int)syscall2(SYS_PING, (uint64_t)ip, (uint64_t)timeout_ms);
+}
+
+typedef struct {
+    uint32_t ip;        /* network byte order */
+    uint32_t netmask;
+    uint32_t gateway;
+    uint32_t dns;
+    uint8_t mac[6];
+    uint8_t link;
+    char name[16];
+} sb_netinfo_t;
+
+static inline int sb_netinfo(sb_netinfo_t *info) {
+    return (int)syscall1(SYS_NETINFO, (uint64_t)info);
+}
+
+/* Compact snapshot filled by sys_sys_status (wifi_state matches kernel
+ * wifi_state_t: 0 uninit,1 scanning,2 associating,3 associated,4 connected,5 disconnected). */
+typedef struct {
+    uint8_t  wifi_state;
+    char     wifi_ssid[33];
+    int16_t  wifi_signal;
+    uint8_t  bt_available;
+    uint8_t  bt_devices;
+    uint64_t uptime_ticks;
+    uint64_t mem_total;
+    uint64_t mem_used;
+} sys_status_t;
+
+typedef struct {
+    uint32_t id;
+    uint8_t  priority;
+    char     app_name[64];
+    char     summary[128];
+    char     body[512];
+} sys_notify_t;
+
+static inline int sys_sys_status(sys_status_t *st) {
+    return (int)syscall1(SYS_SYS_STATUS, (uint64_t)st);
+}
+
+static inline int sys_notify_peek(sys_notify_t *buf, uint32_t max) {
+    return (int)syscall2(SYS_NOTIFY_PEEK, (uint64_t)buf, (uint64_t)max);
+}
+
+static inline int sys_notify_dismiss(uint32_t id) {
+    return (int)syscall1(SYS_NOTIFY_DISMISS, (uint64_t)id);
+}
+
 static inline uint64_t sys_fb_mmap(void) {
     return syscall0(SYS_FB_MMAP);
+}
+
+/* Power management: 0=reboot, 1=shutdown, 2=suspend. */
+static inline uint64_t sys_power(uint64_t action) {
+    return syscall1(SYS_POWER, action);
 }
 
 static inline void sys_fb_info(uint32_t *w, uint32_t *h, uint32_t *p, uint8_t *bpp) {

@@ -1,0 +1,90 @@
+#include "gui_manager.h"
+#include "Compositor.hpp"
+#include "InputRouter.hpp"
+#include "MouseCursor.hpp"
+
+// GUIManager — central owner of compositor, input router, and widget tree
+// Reduces boilerplate in demo applications and future apps.
+
+GUIManager::GUIManager() : renderer_(new SoftwareRenderer()), composite_count_(0) {}
+
+GUIManager::~GUIManager() {
+    shutdown();
+}
+
+void GUIManager::init(void* fb, uint32_t stride, uint32_t w, uint32_t h) {
+    // Create compositor
+    comp_ = new Compositor(fb, stride, w, h);
+    gui_set_renderer(renderer_.get());
+    
+    // Create input router
+    router_ = new InputRouter(comp_, w, h);
+    
+    // Create default mouse cursor (auto-added as root by InputRouter)
+    cursor_ = new MouseCursor(router_);
+    router_->set_cursor(cursor_);
+}
+
+void GUIManager::shutdown() {
+    if (cursor_) { delete cursor_; cursor_ = nullptr; }
+    if (router_) { delete router_; router_ = nullptr; }
+    if (comp_) { delete comp_; comp_ = nullptr; }
+}
+
+void GUIManager::frame(int dt_ms) {
+    if (!comp_) return;
+    // Advance animations
+    animate_roots(dt_ms);
+    // Frame the compositor
+    comp_->frame(dt_ms);
+}
+
+void GUIManager::add_root(Widget* w, bool raise) {
+    if (!comp_) return;
+    comp_->add_root(w, raise);
+}
+
+void GUIManager::remove_root(Widget* w) {
+    if (!comp_) return;
+    comp_->remove_root(w);
+}
+
+Widget* GUIManager::focused() const {
+    return comp_ ? comp_->focused() : nullptr;
+}
+
+void GUIManager::set_focus(Widget* w) {
+    if (comp_) comp_->set_focus(w);
+}
+
+// Input delegation
+void GUIManager::inject_mouse_packet(uint8_t buttons, int8_t dx, int8_t dy) {
+    if (router_) router_->inject_mouse_packet(buttons, dx, dy);
+}
+
+void GUIManager::inject_mouse_absolute(int32_t abs_x, int32_t abs_y, uint8_t buttons) {
+    if (router_) router_->inject_mouse_absolute(abs_x, abs_y, buttons);
+}
+
+void GUIManager::inject_key_press(uint32_t key, uint8_t mods) {
+    if (router_) router_->inject_key_press(key, mods);
+}
+
+void GUIManager::inject_key_release(uint32_t key, uint8_t mods) {
+    if (router_) router_->inject_key_release(key, mods);
+}
+
+void GUIManager::inject_scroll(int32_t delta) {
+    if (router_) router_->inject_scroll(delta);
+}
+
+int32_t GUIManager::mouse_x() const { return router_ ? router_->mouse_x() : 0; }
+int32_t GUIManager::mouse_y() const { return router_ ? router_->mouse_y() : 0; }
+
+void GUIManager::set_renderer(std::unique_ptr<RendererInfo> r) {
+    renderer_ = std::move(r);
+    if (comp_) comp_->set_renderer(renderer_.get());
+}
+std::unique_ptr<RendererInfo> GUIManager::release_renderer() {
+    return std::move(renderer_);
+}

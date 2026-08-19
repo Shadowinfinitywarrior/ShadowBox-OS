@@ -1,3 +1,9 @@
+static int get_num_processes(void){
+    struct proc_info buf[32];
+    int n = sys_proc_info(buf, 32);
+    return n;
+}
+
 static void draw_sysmon(window_t *w) {
     // Update system monitor data periodically (≈0.5s)
     uint64_t now = sys_times(0);
@@ -47,7 +53,7 @@ static void draw_sysmon(window_t *w) {
     
     draw_icon_file(w->x + 180, w->y + 130, 0xE67E22);
     draw_string(w->x + 200, w->y + 135, "Tasks: ", 0x34495E);
-    draw_number(w->x + 256, w->y + 135, num_windows + 3, 0x2C3E50); // Approximated
+    draw_number(w->x + 256, w->y + 135, get_num_processes(), 0x2C3E50);
     
     // Driver list (right side column)
     draw_string(w->x + 240, w->y + 55, "Drivers Loaded:", 0x2980B9);
@@ -59,6 +65,14 @@ static void draw_sysmon(window_t *w) {
     // Memory Usage Graph Box
     draw_string(w->x + 10, w->y + 165, "Memory Usage History:", 0x2980B9);
     draw_rect(w->x + 10, w->y + 185, 200, 50, 0xBDC3C7);
+    // Process list header and placeholder
+    int proc_list_y = w->y + 250;
+    draw_string(w->x + 10, proc_list_y, "PID  Name     State", 0x2980B9);
+    draw_string(w->x + 10, proc_list_y + 20, "1  init  RUNNING", 0x34495E);
+    // Start and Kill buttons
+    int btn_w = 60;
+    draw_button(w->x + w->w - 140, w->y + 320, btn_w, 24, "Start", 0x27AE60, 0xFFFFFF);
+    draw_button(w->x + w->w - 70, w->y + 320, btn_w, 24, "Kill", 0xE74C3C, 0xFFFFFF);
     draw_rect(w->x + 12, w->y + 187, 196, 46, 0xECF0F1); // inner area
     
     // CPU Usage Graph Box

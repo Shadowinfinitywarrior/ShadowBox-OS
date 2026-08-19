@@ -9,7 +9,7 @@ typedef struct udp_socket udp_socket_t;
 struct tcp_socket;
 typedef struct tcp_socket tcp_socket_t;
 
-struct bt_device { char name[64]; };
+struct bt_device { char name[64]; struct bt_device *next; };
 typedef struct bt_device bt_device_t;
 
 /*
@@ -305,5 +305,27 @@ void udp_init(void);
 int udp_socket_sendto(udp_socket_t *sock, net_device_t *dev,
                       uint32_t dest_ip, uint16_t dest_port,
                       const void *data, uint32_t len);
+
+/*
+ * DNS resolver
+ */
+void dns_set_server(uint32_t ip);
+uint32_t dns_get_server(void);
+int dns_resolve(const char *name, uint32_t *ip_out);
+
+/*
+ * NTP time sync
+ */
+int ntp_sync(uint32_t server_ip, int64_t *offset_out);
+
+/*
+ * ICMP ping
+ */
+int net_ping(uint32_t ip, uint32_t timeout_ms);
+
+/*
+ * ARP cache lookup: fills mac[6], returns 1 if found
+ */
+int net_arp_lookup(uint32_t ip, uint8_t *mac);
 
 #endif

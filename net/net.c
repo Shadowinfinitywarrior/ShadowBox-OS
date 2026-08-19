@@ -85,6 +85,9 @@ static void arp_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len) 
     }
 }
 
+static void arp_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len);
+static void icmp_dispatch(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip);
+
 static void icmp_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip) {
     if (len < sizeof(struct icmp_header)) return;
     struct icmp_header *icmp = (struct icmp_header *)packet;
@@ -148,7 +151,7 @@ static void ip_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len) {
     uint32_t payload_len = ip->total_len - (ip->version_ihl & 0x0F) * 4;
 
     switch (ip->protocol) {
-    case IP_ICMP: icmp_handle_packet(dev, payload, payload_len, ip->src_ip); break;
+    case IP_ICMP: icmp_dispatch(dev, payload, payload_len, ip->src_ip); break;
     case IP_UDP:  udp_handle_packet(dev, payload, payload_len, ip->src_ip); break;
     case IP_TCP:  tcp_handle_packet(dev, payload, payload_len); break;
     }
@@ -164,4 +167,98 @@ void net_handle_packet(net_device_t *dev, uint8_t *packet, uint32_t len) {
     case ETH_ARP: arp_handle_packet(dev, payload, payload_len); break;
     case ETH_IP:  ip_handle_packet(dev, payload, payload_len); break;
     }
+}
+
+/*
+ * net_arp_lookup - Look up the MAC for an IP in the ARP cache.
+ * Returns 1 and fills mac[] if found.
+ */
+int net_arp_lookup(uint32_t ip, uint8_t *mac) {
+    if (!mac) return 0;
+    for (int i = 0; i < ARP_CACHE_SIZE; i++) {
+        if (arp_cache[i].ip == ip) {
+            for (int j = 0; j < 6; j++) mac[j] = arp_cache[i].mac[j];
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* --- ICMP ping support --- */
+static uint32_t ping_id_counter;
+static int ping_received;
+
+static void icmp_handle_echo_reply(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip) {
+    (void)dev; (void)len; (void)src_ip;
+    if (len < sizeof(struct icmp_header)) return;
+    struct icmp_header *icmp = (struct icmp_header *)packet;
+    if (ping_received == 0 && icmp->id == ping_id_counter) {
+        ping_received = 1;
+    }
+}
+
+/* ICMP echo request/checksum are handled by the existing path; add reply
+ * recognition to the incoming ICMP dispatch. */
+static void icmp_dispatch(net_device_t *dev, uint8_t *packet, uint32_t len, uint32_t src_ip) {
+    if (len < sizeof(struct icmp_header)) return;
+    struct icmp_header *icmp = (struct icmp_header *)packet;
+    if (icmp->type == ICMP_ECHO_REPLY) {
+        icmp_handle_echo_reply(dev, packet, len, src_ip);
+    } else if (icmp->type == ICMP_ECHO_REQUEST) {
+        icmp_handle_packet(dev, packet, len, src_ip);
+    }
+}
+
+/*
+ * net_ping - Send an ICMP echo request and wait for a reply.
+ * Returns round-trip time in ms, or -1 on timeout.
+ */
+int net_ping(uint32_t ip, uint32_t timeout_ms) {
+    extern net_device_t *net_devices;
+    if (!net_devices) return -ENODEV;
+    net_device_t *dev = net_devices;
+
+    uint8_t frame[128];
+    struct eth_header *eth = (struct eth_header *)frame;
+    uint8_t dst[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    if (net_arp_lookup(ip, dst)) {
+        /* use resolved MAC */
+    }
+    for (int i = 0; i < 6; i++) { eth->dest[i] = dst[i]; eth->src[i] = dev->mac[i]; }
+    eth->ethertype = (ETH_IP >> 8) | (ETH_IP << 8);
+
+    struct ip_header *ip_hdr = (struct ip_header *)(frame + sizeof(struct eth_header));
+    ip_hdr->version_ihl = 0x45;
+    ip_hdr->tos = 0;
+    ip_hdr->total_len = sizeof(struct ip_header) + sizeof(struct icmp_header);
+    ip_hdr->id = 0;
+    ip_hdr->flags_frag = 0;
+    ip_hdr->ttl = 64;
+    ip_hdr->protocol = IP_ICMP;
+    ip_hdr->checksum = 0;
+    ip_hdr->src_ip = dev->ip;
+    ip_hdr->dest_ip = ip;
+    ip_hdr->checksum = net_checksum((uint16_t *)ip_hdr, sizeof(struct ip_header));
+
+    struct icmp_header *icmp = (struct icmp_header *)(frame + sizeof(struct eth_header) + sizeof(struct ip_header));
+    icmp->type = ICMP_ECHO_REQUEST;
+    icmp->code = 0;
+    icmp->id = ++ping_id_counter;
+    icmp->sequence = 0;
+    icmp->checksum = 0;
+    uint16_t cksum = net_checksum((uint16_t *)icmp, sizeof(struct icmp_header));
+    icmp->checksum = (uint16_t)((cksum >> 8) | (cksum << 8));
+
+    ping_received = 0;
+    uint64_t start = get_ms_time();
+    dev->send_packet(dev, frame, sizeof(struct eth_header) + sizeof(struct ip_header) + sizeof(struct icmp_header));
+
+    while (get_ms_time() - start < timeout_ms) {
+        if (ping_received) {
+            return (int)(get_ms_time() - start);
+        }
+        extern void yield(void);
+        yield();
+    }
+    return -1;
 }

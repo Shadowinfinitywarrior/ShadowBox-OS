@@ -291,4 +291,13 @@ void msleep(uint64_t ms);
  */
 void ssleep(uint64_t s);
 
+/*
+ * Time zone / clock adjustment state (used by sys_gettimeofday)
+ */
+void time_set_timezone_offset(int minutes);
+int time_get_timezone_offset(void);
+void time_set_adjust(int64_t seconds);
+int64_t time_get_adjust(void);
+uint64_t rtc_unix_time_now(void);
+
 #endif

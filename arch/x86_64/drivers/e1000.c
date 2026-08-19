@@ -189,11 +189,12 @@ void e1000_init(pci_device_t *pci_dev) {
     memset(&e1000_dev, 0, sizeof(net_device_t));
     e1000_dev.name = "e1000";
     memcpy(e1000_dev.mac, e1000_mac, 6);
-    e1000_dev.ip = 0x0A000001;
-    e1000_dev.netmask = 0x00FFFFFF;
-    e1000_dev.gateway = 0x0A0000FE;
+    e1000_dev.ip = 0x0A00020F;      /* 10.0.2.15 (QEMU user-net guest IP) */
+    e1000_dev.netmask = 0x00FFFFFF; /* 255.0.0.0  */
+    e1000_dev.gateway = 0x0A000202; /* 10.0.2.2   */
     e1000_dev.send_packet = e1000_send_packet;
     net_register_device(&e1000_dev);
+    dns_set_server(0x0A000203);     /* 10.0.2.3 (QEMU user-net DNS) */
 
     printk(KERN_INFO "E1000: Driver initialized\n");
 }

@@ -13,6 +13,7 @@ void keyboard_handler(void);
 /*
  * keyboard_init - Initialize keyboard controller
  */
+void keyboard_handle_scancode(uint8_t scancode);
 void keyboard_init(void);
 
 /*

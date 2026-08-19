@@ -111,6 +111,7 @@ void mouse_process_byte(uint8_t data) {
     dy = -dy;
 
     if (dx != 0 || dy != 0) {
+        printk(KERN_DEBUG "MOUSE MOVE dx=%d dy=%d\n", dx, dy);
         input_push(INPUT_EVENT_MOUSE_MOVE, 0, (int16_t)dx, (int16_t)dy);
     }
 
@@ -130,9 +131,15 @@ void mouse_process_byte(uint8_t data) {
 }
 
 void mouse_handler(void) {
-    while ((inb(PS2_CMD) & PS2_STATUS_OUTPUT) && (inb(PS2_CMD) & PS2_STATUS_AUX)) {
+    uint8_t status = inb(PS2_CMD);
+    
+    while (((status = inb(PS2_CMD)) & PS2_STATUS_OUTPUT)) {
         uint8_t b = inb(PS2_DATA);
-        mouse_process_byte(b);
+        if (status & PS2_STATUS_AUX) {
+            mouse_process_byte(b);
+        } else {
+            keyboard_handle_scancode(b);
+        }
     }
 }
 
@@ -224,5 +231,5 @@ void mouse_init(void) {
     ioapic_route_irq(12, 44, 0);
 
     printk(KERN_INFO "PS2: Mouse initialized.\n");
-    mouse_start_poll_thread();
+    // mouse_start_poll_thread(); // Disabled: races with IRQ 12
 }

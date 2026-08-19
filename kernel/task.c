@@ -49,7 +49,7 @@ void task_init(void) {
     main_proc->egid = 0;
 
     main_proc->cwd = fs_root;
-
+    strcpy(main_proc->name, "init");
     main_proc->next = main_proc;
 
     current_proc = main_proc;
@@ -106,6 +106,7 @@ struct process *task_create_proc(void (*entry)(void*), void *arg) {
     struct process *new_proc = slab_alloc(process_cache);
     if (!new_proc) return 0;
     memset(new_proc, 0, sizeof(struct process));
+    strcpy(new_proc->name, "kthread");
 
     new_proc->pid = next_pid++;
     new_proc->ppid = current_proc->pid;
@@ -286,7 +287,7 @@ int task_exec(struct process *proc, uint8_t *elf_data, uint64_t size, char **arg
     }
 
     uint64_t user_stack_virt = 0x8000000000;
-    for (int i = 4; i >= 1; i--) {
+    for (int i = 16; i >= 1; i--) {
         uint64_t phys = (uint64_t)pmm_alloc_page();
         vmm_map_page(phys, user_stack_virt - i * PAGE_SIZE, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
     }
@@ -473,6 +474,13 @@ int task_proc_info(struct proc_info *buf, int max) {
         buf[count].state = p->state;
         buf[count].kstack = p->kstack;
         buf[count].cr3 = p->cr3;
+        if (p->name[0]) {
+            int i = 0;
+            while (i < 31 && p->name[i]) { buf[count].name[i] = p->name[i]; i++; }
+            buf[count].name[i] = 0;
+        } else {
+            strcpy(buf[count].name, p->pid == 0 ? "kernel" : "process");
+        }
         count++;
         p = p->next;
     } while (p != proc_list);

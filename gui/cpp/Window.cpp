@@ -1,17 +1,22 @@
-// Window.cpp  —  Decorated window implementation
+// Window.cpp  —  Decorated window implementation with modern visual depth
 #include "Window.hpp"
 #include <cstdlib>
 #include <cstdint>
+#include <cmath>
 
+// External C drawing functions from fb_draw.c
 extern "C" {
-    void fb_fill_rect      (void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t);
+    void fb_fill_rect       (void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t);
     void fb_fill_rect_round(void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t, int32_t);
-    void fb_draw_rect      (void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t);
-    void fb_draw_rect_round(void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t, int32_t);
-    void fb_draw_text      (void*, uint32_t, int32_t, int32_t, const char*, uint32_t, uint32_t);
+    void fb_draw_rect       (void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t);
+    void fb_draw_rect_round (void*, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t, int32_t);
+    void fb_draw_text       (void*, uint32_t, int32_t, int32_t, const char*, uint32_t, uint32_t);
+    void gui_fb_flip        (uint32_t y_offset);
+    void* gui_fb_backbuf    ();
+    uint32_t gui_fb_stride  ();
 }
 
-// ─── Helper: close button lambda via a plain static trampoline ────────────
+// ── Helper: close button lambda via a plain static trampoline ────────────
 static void close_btn_clicked(Widget* w) {
     Window* win = static_cast<Window*>(w->user_data);
     if (win->on_close) win->on_close(win);
@@ -23,115 +28,44 @@ static void min_btn_clicked(Widget* w) {
     if (win->on_minimize) win->on_minimize(win);
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-//  Construction / Destruction
-// ─────────────────────────────────────────────────────────────────────────
+// ── Color blending helpers ─────────────────────────────────────────────────
 
-Window::Window(Widget* parent) : Widget(parent) {
-    set_tag("Window");
-    set_flag(WF_CLIP, true);
-
-    // Title label (spans full title bar; painted behind buttons)
-    title_label_ = new Label(nullptr);
-    title_label_->set_color(Colors::Text);
-    title_label_->set_align(TextAlign::Center);
-    Widget::add_child(title_label_);
-
-    // Close button
-    if (closeable) {
-        close_btn_ = new Button(nullptr);
-        close_btn_->set_label("x");
-        close_btn_->bg_normal     = Colors::Transparent;
-        close_btn_->bg_hover      = Colors::Danger;
-        close_btn_->bg_press      = dim(Colors::Danger, 180);
-        close_btn_->fg_normal     = Colors::Text;
-        close_btn_->fg_hover      = Colors::White;
-        close_btn_->corner_radius = 4;
-        close_btn_->on_clicked    = close_btn_clicked;
-        close_btn_->user_data     = this;
-        Widget::add_child(close_btn_);
-    }
-
-    // Minimise button
-    if (minimizable) {
-        min_btn_ = new Button(nullptr);
-        min_btn_->set_label("-");
-        min_btn_->bg_normal     = Colors::Transparent;
-        min_btn_->bg_hover      = Colors::Warning;
-        min_btn_->bg_press      = dim(Colors::Warning, 180);
-        min_btn_->fg_normal     = Colors::Text;
-        min_btn_->fg_hover      = Colors::Black;
-        min_btn_->corner_radius = 4;
-        min_btn_->on_clicked    = min_btn_clicked;
-        min_btn_->user_data     = this;
-        Widget::add_child(min_btn_);
-    }
-
-    layout_controls();
-    start_anim_open();
+static uint32_t blend_alpha(uint32_t color, float alpha) {
+    uint32_t a = (color >> 24) & 0xFF;
+    uint32_t na = static_cast<uint32_t>(a * alpha);
+    return (color & 0x00FFFFFFu) | (na << 24);
 }
 
-Window::~Window() {
-    // Children are freed manually since we allocated them
-    delete title_label_;
-    delete close_btn_;
-    delete min_btn_;
+static uint32_t blend(uint32_t fg, uint32_t bg, float alpha) {
+    uint32_t fa = static_cast<uint32_t>(alpha * 255);
+    uint32_t fb = 255 - fa;
+    uint32_t r = ((fg & 0xFF0000u) * fa + (bg & 0xFF0000u) * fb) / 255;
+    uint32_t g = ((fg & 0x00FF00u) * fa + (bg & 0x00FF00u) * fb) / 255;
+    uint32_t b = ((fg & 0x0000FFu) * fa + (bg & 0x0000FFu) * fb) / 255;
+    uint32_t a_out = ((fg >> 24) * fa + (bg >> 24) * fb) / 255;
+    return (a_out << 24) | (r << 16) | (g << 8) | b;
 }
 
-// ─── Title ────────────────────────────────────────────────────────────────
+// ── Window constants ───────────────────────────────────────────────────────
 
-void Window::set_title(const char* t) {
-    int i = 0;
-    while (t[i] && i < 127) { title_[i] = t[i]; ++i; }
-    title_[i] = '\0';
-    if (title_label_) title_label_->set_text(t);
-}
+static constexpr int BORDER_W       = 2;       // Window border width
+static constexpr int TITLEBAR_H     = 32;      // Title bar height
+static constexpr int RESIZE_ZONE    = 8;       // Resize grip zone size
+static constexpr float ANIM_START_SCALE = 0.8f;  // Pop-in start scale
+static constexpr float ANIM_START_ALPHA = 0.3f;   // Pop-in start alpha
+static constexpr int   ANIM_DURATION_MS   = 150;   // Animation duration
 
-// ─── Geometry ─────────────────────────────────────────────────────────────
+// ── Focus/blur animation state ──────────────────────────────────────────────
 
-Rect Window::client_rect() const {
-    Point p = screen_pos();
-    return {
-        p.x + BORDER_W,
-        p.y + TITLEBAR_H,
-        rect_.w - BORDER_W * 2,
-        rect_.h - TITLEBAR_H - BORDER_W
-    };
-}
+static int focus_anim_progress = 0;
+static bool focus_animating = false;
 
-void Window::add_client(Widget* child) {
-    Widget::add_child(child);
-    Rect r = child->rect();
-    // Offset relative to window so it lands in the client area
-    child->set_rect({ r.x + BORDER_W, r.y + TITLEBAR_H, r.w, r.h });
-}
-
-void Window::layout_controls() {
-    int y = (TITLEBAR_H - 20) / 2;
-    int x = rect_.w;
-
-    if (close_btn_) {
-        x -= 28;
-        close_btn_->set_rect({ x, y, 24, 20 });
-    }
-    if (min_btn_) {
-        x -= 28;
-        min_btn_->set_rect({ x, y, 24, 20 });
-    }
-    if (title_label_) {
-        title_label_->set_rect({ 0, 0, rect_.w, TITLEBAR_H });
-    }
-}
-
-void Window::on_resize() {
-    layout_controls();
-}
-
-// ─── Paint ────────────────────────────────────────────────────────────────
+// ── Paint ──────────────────────────────────────────────────────────────────────
 
 void Window::paint_self(const Rect& /*dirty*/, void* fb, uint32_t stride) {
     Rect sr = screen_rect();
-    // Apply pop-in animation scaling and alpha blending
+    
+    // Clamp alpha to valid range
     float anim_alpha = 1.0f;
     if (animating_) {
         float t = anim_progress_;
@@ -148,43 +82,61 @@ void Window::paint_self(const Rect& /*dirty*/, void* fb, uint32_t stride) {
         // alpha blending factor
         anim_alpha = ANIM_START_ALPHA + (1.0f - ANIM_START_ALPHA) * eased;
     }
+
     // Helper to blend alpha into a colour
     auto blend_alpha = [&](Color c) -> Color {
-        uint32_t a = (c >> 24) & 0xFF;
-        uint32_t na = static_cast<uint32_t>(a * anim_alpha);
+        uint32_t ac = (c >> 24) & 0xFF;
+        uint32_t na = static_cast<uint32_t>(ac * anim_alpha);
         return (c & 0x00FFFFFFu) | (na << 24);
     };
 
-    // Drop shadow (semi-transparent dark fill offset by 4px)
-    fb_fill_rect_round(fb, stride,
-                       sr.x + 4, sr.y + 4, sr.w, sr.h,
-                       blend_alpha(0x44000000u), 10);
+    // Color constants from theme
+    uint32_t window_bg = LightTheme::WindowBg;  // Could be theme-aware
+    uint32_t title_bg  = LightTheme::Accent;
+    uint32_t border_col = LightTheme::Border;
+    uint32_t text_col  = LightTheme::Text;
 
-    // Window body
+    // ── Drop shadow (semi-transparent dark fill offset by 4px) ────────────
+    // Draw shadow first, behind the window
+    Rect shadow_rect = sr;
+    shadow_rect.x -= 4;
+    shadow_rect.y -= 4;
+    shadow_rect.w += 8;
+    shadow_rect.h += 8;
+    fb_fill_rect_round(fb, stride,
+                       shadow_rect.x, shadow_rect.y, shadow_rect.w, shadow_rect.h,
+                       LightTheme::Shadow, 12);
+
+    // ── Window body with rounded corners ────────────────────────────────────
     fb_fill_rect_round(fb, stride,
                        sr.x, sr.y, sr.w, sr.h,
-                       blend_alpha(window_bg), 10);
+                       blend_alpha(window_bg), 12);
 
-    // Title bar (rounded top, squared-off bottom half)
+    // ── Title bar: rounded top, squared-off bottom half ─────────────────────
+    // Top rounded part
     fb_fill_rect_round(fb, stride,
                        sr.x, sr.y, sr.w, TITLEBAR_H,
                        blend_alpha(title_bg), 10);
+    // Bottom squared part
     fb_fill_rect(fb, stride,
                  sr.x, sr.y + TITLEBAR_H / 2,
                  sr.w, TITLEBAR_H / 2,
                  blend_alpha(title_bg));
 
-    // Border
+    // ── Border ───────────────────────────────────────────────────────────────
     fb_draw_rect(fb, stride, sr.x, sr.y, sr.w, sr.h, blend_alpha(border_col));
 
-    // Separator line below title bar
+    // ── Separator line below title bar ───────────────────────────────────────
     fb_fill_rect(fb, stride,
                  sr.x, sr.y + TITLEBAR_H,
                  sr.w, 1,
                  blend_alpha(border_col));
+
+    // ── Draw close/min buttons if present ────────────────────────────────────
+    // (Already drawn by their paint_self which uses theme colors)
 }
 
-// ─── Input — drag & resize ────────────────────────────────────────────────
+// ── Input — drag & resize ────────────────────────────────────────────────────
 
 bool Window::in_titlebar(Point pt) const {
     Rect sr = screen_rect();
@@ -254,6 +206,7 @@ bool Window::on_mouse_release(const InputEvent& ev) {
 }
 
 // ─── Animation control implementations ───────────────────────────────────────
+
 void Window::paint(const Rect& dirty_screen, void* fb, uint32_t stride) {
     if (animating_ && anim_progress_ < 1.0f) {
         // Draw window with animation (children omitted during pop-in/out)
@@ -311,3 +264,6 @@ void Window::tick(int dt_ms) {
     }
 }
 
+// ── C bridge ─────────────────────────────────────────────────────────────
+
+extern "C" {

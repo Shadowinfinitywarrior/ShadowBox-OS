@@ -34,6 +34,24 @@ widget_t* widget_get_focused(void) {
     return focused_widget;
 }
 
+// GUI-specific helper functions
+void gui_widget_set_focus(widget_t *w) {
+    widget_set_focus(w);
+}
+
+widget_t* gui_widget_get_focused(void) {
+    return widget_get_focused();
+}
+
+void gui_update_cursor(window_t *win, int32_t x, int32_t y) {
+    if (win && win->root_widget) {
+        // Update the global cursor state for GUI event handling
+        // Use pointer to the global cursor variables from gui_impl.c
+        // Since widget.c can't directly access gui_impl.c variables,
+        // we'll implement this as a placeholder for now
+    }
+}
+
 static uint32_t next_widget_id = 1; // simple id generator
 
 /* Create a new widget with given parameters. */

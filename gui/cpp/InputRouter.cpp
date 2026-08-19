@@ -165,17 +165,14 @@ void InputRouter::inject_mouse_packet(uint8_t buttons, int8_t dx, int8_t dy) {
     clamp_mouse();
     
     if (cursor_) {
-        // Dirty old cursor area
         cursor_->mark_dirty({ old_mx, old_my, CursorBitmap::W, CursorBitmap::H });
-        // Update widget position and mark new area dirty
         cursor_->set_rect({ mx_, my_, CursorBitmap::W, CursorBitmap::H });
-        cursor_->mark_dirty();
+        cursor_->mark_dirty({ mx_, my_, CursorBitmap::W, CursorBitmap::H });
     }
 
     InputEvent ev;
     ev.pos = { mx_, my_ };
 
-    // Build move event
     ev.type = EventType::MouseMove;
     dispatch(ev);
 
@@ -217,10 +214,9 @@ void InputRouter::inject_mouse_absolute(int32_t ax, int32_t ay, uint8_t buttons)
     if (cursor_) {
         cursor_->mark_dirty({ old_mx, old_my, CursorBitmap::W, CursorBitmap::H });
         cursor_->set_rect({ mx_, my_, CursorBitmap::W, CursorBitmap::H });
-        cursor_->mark_dirty();
+        cursor_->mark_dirty({ mx_, my_, CursorBitmap::W, CursorBitmap::H });
     }
 
-    // Build move event
     InputEvent ev;
     ev.type = EventType::MouseMove;
     ev.pos = { mx_, my_ };

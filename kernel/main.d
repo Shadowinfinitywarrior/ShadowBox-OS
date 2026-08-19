@@ -10,8 +10,12 @@ kernel/main.o: kernel/main.c include/types.h include/kernel.h \
  include/apic.h include/slab.h include/spinlock.h include/block.h \
  include/ext2.h include/block.h include/devfs.h include/smp.h \
  include/sched.h include/task.h include/ipc.h include/net.h \
- include/acpi.h include/ahci.h include/pci.h include/usb.h include/fb.h \
- include/e1000.h include/rtc.h include/mmap.h include/swap.h \
- include/procfs.h include/sysfs.h include/signal.h include/kthread.h \
- include/socket.h include/sched.h include/tmpfs.h include/aslr.h \
- include/buddy.h include/rtl8139.h include/net.h include/hda.h
+ include/acpi.h include/desktop.h include/ahci.h include/pci.h \
+ include/usb.h include/fb.h include/e1000.h include/rtc.h include/mmap.h \
+ include/swap.h include/procfs.h include/sysfs.h include/signal.h \
+ include/kthread.h include/socket.h include/sched.h include/tmpfs.h \
+ include/aslr.h include/buddy.h include/rtl8139.h include/net.h \
+ include/hda.h include/ac97.h include/audio.h include/device.h \
+ include/sysfs.h include/hdmi_audio.h include/usb_audio.h include/usb.h \
+ include/i2s.h include/virtio_gpu.h include/intel_gpu.h include/display.h \
+ include/virtio_blk.h include/wifi.h include/bluetooth.h include/drm.h

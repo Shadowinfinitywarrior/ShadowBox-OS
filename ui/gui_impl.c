@@ -40,8 +40,14 @@ extern unsigned int input_router_scancode(unsigned char sc, int shift);
 // Global cursor state for the GUI
 static int32_t cursor_x = 0;
 static int32_t cursor_y = 0;
+static widget_t *focused_widget = NULL;  // Track focused widget for keyboard input
 #include "libinput.h"
 #include <stdlib.h>
+
+// Helper function to get focused widget from GUI perspective
+widget_t* gui_get_focused_widget(void) {
+    return focused_widget;
+}
 
 // Forward declarations removed as they are in gui_toolkit.h
 
@@ -101,14 +107,12 @@ void gui_dispatch_event(window_t *win, libinput_event_t *ev) {
             break;
         }
         case LIBINPUT_EVENT_POINTER_BUTTON: {
-            // Simple button press handling – find widget under cursor.
-            // For this stub we assume the coordinates are stored elsewhere; use (0,0).
-            // In a full implementation you would obtain the latest cursor position.
+            // Simple button press handling – find widget under cursor using latest cursor position.
             widget_t *w = gui_hit_test(win);
-                if (w) {
-                    widget_set_focus(w);
-                    // TODO: Draw focus highlight around widget
-                }
+            if (w) {
+                widget_set_focus(w);
+                // TODO: Draw focus highlight around widget
+            }
             if (w && w->on_click) {
                 w->on_click(w);
             }

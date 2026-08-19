@@ -12,24 +12,37 @@
 #define PS2_STATUS_AUX 0x20
 
 static void mouse_poll_thread(void *arg) {
-(void)arg;
-while (1) {
-uint64_t flags;
-__asm__ volatile("pushfq\npop %0\ncli\n" : "=r"(flags) : : "memory");
-while ((inb(PS2_CMD) & PS2_STATUS_OUTPUT) && (inb(PS2_CMD) & PS2_STATUS_AUX)) {
-uint8_t b = inb(PS2_DATA);
-mouse_process_byte(b);
-}
-__asm__ volatile("push %0\npopfq\n" : : "r"(flags) : "memory");
-// Simple delay to avoid busy-wait hogging the CPU.
-for (volatile int i = 0; i < 1000; ++i) {
-__asm__ volatile("pause" ::: "memory");
-}
-}
+    (void)arg;
+    static int poll_count = 0;
+    printk(KERN_DEBUG "MOUSE POLL THREAD STARTING\n");
+    int loop = 0;
+    while (1) {
+        uint64_t flags;
+        __asm__ volatile("pushfq\npop %0\ncli\n" : "=r"(flags) : : "memory");
+        uint8_t status = inb(PS2_CMD);
+        if ((status & PS2_STATUS_OUTPUT) && (status & PS2_STATUS_AUX)) {
+            uint8_t b = inb(PS2_DATA);
+            if (poll_count < 10) {
+                printk(KERN_DEBUG "MOUSE POLL byte=0x%02x status=0x%02x\n", b, status);
+                poll_count++;
+            }
+            mouse_process_byte(b);
+        } else if (loop < 3 || (status != 0 && poll_count < 10)) {
+            if (poll_count < 10) {
+                printk(KERN_DEBUG "MOUSE POLL status=0x%02x OUT=%d AUX=%d\n", status, !!(status & PS2_STATUS_OUTPUT), !!(status & PS2_STATUS_AUX));
+                poll_count++;
+            }
+        }
+        __asm__ volatile("push %0\npopfq\n" : : "r"(flags) : "memory");
+        for (volatile int i = 0; i < 1000; ++i) {
+            __asm__ volatile("pause" ::: "memory");
+        }
+        loop++;
+    }
 }
 
 // Export symbol for thread creation.
 void mouse_start_poll_thread(void) {
-extern struct process* kthread_create(void (*entry)(void*), void *arg, const char *name);
-kthread_create(mouse_poll_thread, NULL, "mouse-poll");
+    extern struct process* kthread_create(void (*entry)(void*), void *arg, const char *name);
+    kthread_create(mouse_poll_thread, NULL, "mouse-poll");
 }

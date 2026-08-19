@@ -54,7 +54,11 @@ arch/x86_64/drivers/e1000.o \
 arch/x86_64/drivers/fb_double.o \
 arch/x86_64/drivers/ramdisk.o \
 arch/x86_64/drivers/tickless.o \
-arch/x86_64/drivers/virtio_net.o
+arch/x86_64/drivers/virtio_net.o \
+arch/x86_64/drivers/ac97.o \
+arch/x86_64/drivers/i2s.o \
+arch/x86_64/drivers/intel_gpu.o \
+arch/x86_64/drivers/virtio_gpu.o
 
 HAL_OBJS = \
 kernel/hal/hal.o \
@@ -150,7 +154,9 @@ net/udp.o \
 net/socket.o \
 net/bluetooth.o \
 net/ipv6.o \
-net/wifi.o
+net/wifi.o \
+net/dns.o \
+net/ntp.o
 
 LIB_OBJS = \
 lib/kstring.o
@@ -168,6 +174,7 @@ drivers/bus/spi_master.o
 
 DRIVER_USB_OBJS = \
 drivers/usb/ehci.o \
+drivers/usb/usb_audio.o \
 drivers/usb/usb_core.o \
 drivers/usb/usb_hid.o \
 drivers/usb/usb_hub.o \
@@ -226,11 +233,16 @@ $(GUI_C_OBJS) \
 $(UI_OBJS) \
 $(WM_OBJS)
 
+VIDEO_OBJS = \
+video/drm_core.o \
+video/display.o
+
 OBJS = $(ARCH_BOOT_OBJS) $(ARCH_KERNEL_OBJS) $(ARCH_MM_OBJS) $(ARCH_DRV_OBJS) \
 $(KERNEL_OBJS) $(KERNEL_ACPI_OBJS) $(KERNEL_MEM_OBJS) $(KERNEL_SCHED_OBJS) \
 $(KERNEL_DRV_OBJS) \
 $(FS_OBJS) $(NET_OBJS) $(LIB_OBJS) \
 $(AUDIO_OBJS) $(DRIVER_BUS_OBJS) $(DRIVER_USB_OBJS) \
+$(VIDEO_OBJS) \
 $(GUI_OBJS) $(INIT_OBJS) $(INPUT_OBJS) $(POWER_OBJS)
 
 DEPS = $(OBJS:.o=.d)
@@ -277,6 +289,12 @@ true.elf: userland/true.c
 false.elf: userland/false.c
 search.elf: userland/search.c
 hexedit.elf: userland/hexedit.c
+login.elf: userland/login.c
+ping.elf: userland/ping.c
+date.elf: userland/date.c
+uptime.elf: userland/uptime.c
+nslookup.elf: userland/nslookup.c
+ntpdate.elf: userland/ntpdate.c
 
 os.bin: $(OBJS) link.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
@@ -291,13 +309,15 @@ ahci_disk.img:
 	dd if=/dev/zero of=ahci_disk.img bs=1M count=10 2>/dev/null
 	mke2fs -t ext2 -F ahci_disk.img
 
-initrd.tar: shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf userland/wallpaper.bmp userland/logo.bmp userland/test_data.txt
-	tar -cf initrd.tar shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf -C userland wallpaper.bmp logo.bmp test_data.txt
+initrd.tar: shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf login.elf ping.elf date.elf uptime.elf nslookup.elf ntpdate.elf userland/wallpaper.bmp userland/logo.bmp userland/test_data.txt icons/*.bmp
+	tar -cf initrd.tar shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf login.elf ping.elf date.elf uptime.elf nslookup.elf ntpdate.elf -C userland wallpaper.bmp logo.bmp test_data.txt icons
 
 iso: os.bin initrd.tar ahci_disk.img
 	mkdir -p isodir/boot/grub
+	mkdir -p isodir/icons
 	cp os.bin isodir/boot/os.bin
 	cp initrd.tar isodir/boot/initrd.tar
+	cp icons/*.bmp isodir/icons/
 	{ \
 		echo 'set timeout=0'; \
 		echo 'set default=0'; \
@@ -311,10 +331,10 @@ iso: os.bin initrd.tar ahci_disk.img
 	grub-mkrescue -o os.iso isodir 2>/dev/null
 
 run-nox: iso
-	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda,debug=4 -device hda-output -serial stdio -display none -no-reboot
+	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda,debug=4 -device hda-output -netdev user,id=net0 -device e1000,netdev=net0 -serial stdio -display none -no-reboot
 
 run: iso
-	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda -device hda-output -serial stdio -no-reboot
+	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -device qemu-xhci,id=xhci -device intel-hda -device hda-output -netdev user,id=net0 -device e1000,netdev=net0 -serial stdio -no-reboot
 
 debug: iso
 	qemu-system-x86_64 -cdrom os.iso -drive id=disk,file=ahci_disk.img,if=none,format=raw -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -serial stdio -s -S -no-reboot
@@ -329,9 +349,10 @@ size: os.bin
 	x86_64-linux-gnu-size os.bin
 
 clean:
-	rm -f $(OBJS) $(DEPS) os.bin os.iso shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf userland/*.o initrd.tar ahci_disk.img
+	rm -f $(OBJS) $(DEPS) os.bin os.iso shell.elf hello.elf desktop.elf terminal.elf edit.elf calc.elf netstat.elf sysfetch.elf strings.elf colors.elf guess.elf more.elf factor.elf matrix.elf seq.elf rev.elf wc.elf uname.elf fortune.elf rot13.elf cmp.elf clear.elf sleep.elf chmod.elf chown.elf sort.elf tee.elf which.elf yes.elf true.elf false.elf search.elf hexedit.elf login.elf userland/*.o initrd.tar ahci_disk.img
 	rm -rf isodir
 	rm -f objdump.txt
+	rm -f icons/*.bmp
 
 format:
 	@echo "Format target not yet configured"

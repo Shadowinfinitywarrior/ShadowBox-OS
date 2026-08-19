@@ -15,6 +15,9 @@ void gui_blit_screen(void *dst_fb, const void *src_fb, uint32_t stride, int w, i
 }
 
 #include "../../userland/sys.h"
+
+__attribute__((weak)) void sys_fb_flip(uint32_t y_offset) { (void)y_offset; }
+
 void gui_fb_flip(uint32_t y_offset) {
     sys_fb_flip(y_offset);
 }

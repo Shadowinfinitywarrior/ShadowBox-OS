@@ -59,3 +59,9 @@ void audio_hda_init(void) {
         printk(KERN_ERR "hda: audio device registration failed\n");
     }
 }
+// Stub implementation for build - HDMI audio initialization
+// TODO: Implement real HDMI audio support
+int hdmi_audio_init(void) { return 0; }
+int hdmi_audio_irq_handler(void) { return 0; }
+// Stub implementation for build - HDMI audio initialization
+// TODO: Implement real HDMI audio support

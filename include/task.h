@@ -82,6 +82,8 @@ struct file {
  * @thread_count: Number of threads
  * @rlim_cur, @rlim_max: Resource limits
  * @start_time, @user_time, @sys_time: Timing stats
+ * @mmap_base, @stack_base: Memory layout bases
+ * @name: Process name (basename of executable)
  */
 struct process {
     uint32_t pid;
@@ -143,6 +145,8 @@ struct process {
 
     uint64_t mmap_base;
     uint64_t stack_base;
+
+    char name[32];
 };
 
 /*
@@ -245,6 +249,7 @@ struct proc_info {
     uint32_t state;
     uint64_t kstack;
     uint64_t cr3;
+    char name[32];
 };
 
 /*

@@ -11,7 +11,15 @@
 #include "TextBox.hpp"
 #include "ScrollView.hpp"
 
-#include <string.h>
+#ifndef input_event_t
+typedef struct {
+    uint8_t type;
+    uint8_t code;
+    int16_t x;
+    int16_t y;
+    int16_t value;
+} input_event_t;
+#endif
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
@@ -154,7 +162,7 @@ static void network_manager_create(void) {
     g_comp->add_root((Widget *)w);
 }
 
-void _start(void) {
+extern "C" void _start(void) {
   backbuffer = (uint32_t *)sys_sbrk(SCREEN_WIDTH * SCREEN_HEIGHT * 4);
   if ((int64_t)backbuffer <= 0) { syscall1(SB_TERMINATE, 2); }
 
@@ -179,7 +187,6 @@ void _start(void) {
   if (input_fd < 0) { syscall1(SB_TERMINATE, 4); }
 
   g_comp->frame();
-  gui_blit_screen(fb, backbuffer, PITCH, SCREEN_WIDTH, SCREEN_HEIGHT);
 
   while (1) {
     input_event_t ev;
@@ -199,7 +206,6 @@ void _start(void) {
       }
     }
     g_comp->frame();
-    gui_blit_screen(fb, backbuffer, PITCH, SCREEN_WIDTH, SCREEN_HEIGHT);
     syscall0(SYS_SCHED_YIELD);
   }
 }

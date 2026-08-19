@@ -13,10 +13,10 @@ public:
     explicit Label(Widget* parent = nullptr);
 
     void set_text      (const char* text);
-    void set_color     (Color c)       { fg_ = c;     mark_dirty(); }
-    void set_align     (TextAlign a)   { align_ = a;  mark_dirty(); }
-    void set_wrap      (WrapMode  w)   { wrap_  = w;  mark_dirty(); }
-    void set_font_scale(int s)         { scale_ = s;  mark_dirty(); }
+    void set_color     (Color c);
+    void set_align     (TextAlign a);
+    void set_wrap      (WrapMode  w);
+    void set_font_scale(int s);
 
     const char* text() const { return text_; }
 
@@ -27,6 +27,7 @@ private:
     static constexpr int MAX_TEXT = 512;
     char      text_[MAX_TEXT] = {};
     Color     fg_    = Colors::Text;
+    Color     bg_;  // Background color - initialized in constructor
     TextAlign align_ = TextAlign::Left;
     WrapMode  wrap_  = WrapMode::NoWrap;
     int       scale_ = 1;

@@ -50,3 +50,26 @@ void notification_dismiss(uint32_t id) {
     }
     /* Not found – silently ignore. */
 }
+
+/* Copy up to `max` pending notifications into `out` (newest first).
+ * Returns the number of notifications copied. */
+uint32_t notification_peek(sys_notify_t *out, uint32_t max) {
+    if (!out || max == 0)
+        return 0;
+    uint32_t n = 0;
+    notification_t *cur = notification_head;
+    while (cur && n < max) {
+        sys_notify_t *dst = &out[n];
+        dst->id = cur->id;
+        dst->priority = (uint8_t)cur->priority;
+        for (int i = 0; i < 63 && cur->app_name[i]; i++) dst->app_name[i] = cur->app_name[i];
+        dst->app_name[63] = 0;
+        for (int i = 0; i < 127 && cur->summary[i]; i++) dst->summary[i] = cur->summary[i];
+        dst->summary[127] = 0;
+        for (int i = 0; i < 511 && cur->body[i]; i++) dst->body[i] = cur->body[i];
+        dst->body[511] = 0;
+        n++;
+        cur = cur->next;
+    }
+    return n;
+}

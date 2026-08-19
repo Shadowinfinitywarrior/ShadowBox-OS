@@ -43,6 +43,7 @@ typedef struct window_t {
     int x, y, w, h;
     char title[64];
     uint32_t bg_color;
+    int minimized;
     
     // Terminal / Editor
     char text[24 * 60];
@@ -110,6 +111,12 @@ typedef struct window_t {
     
     // For Fortune
     int fortune_idx;
+
+    // For Settings
+    int settings_category;  /* 0=Appearance, 1=Display, 2=Audio, 3=Network, 4=Power, 5=Users, 6=Accessibility, 7=System */
+    int settings_scroll;
+    int settings_toggle[32]; /* toggle states for each option */
+    char settings_text[32][32]; /* text values for settings options */
 } window_t;
 
 extern window_t windows[MAX_WINDOWS];

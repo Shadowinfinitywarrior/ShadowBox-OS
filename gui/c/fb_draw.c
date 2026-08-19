@@ -164,6 +164,13 @@ void fb_fill_rect(void *fb, uint32_t stride,
                   uint32_t color)
 {
     if (!fb || w <= 0 || h <= 0) return;
+    int32_t fb_w = (int32_t)(stride / sizeof(uint32_t));
+
+    if (x < 0) { w += x; x = 0; }
+    if (y < 0) { h += y; y = 0; }
+    if (x + w > fb_w) w = fb_w - x;
+    if (w <= 0 || h <= 0) return;
+
     uint8_t a = (color >> 24) & 0xFF;
     for (int32_t row = 0; row < h; ++row) {
         uint32_t *p = pixel_at(fb, stride, x, y + row);
@@ -217,7 +224,14 @@ void fb_fill_rect_round(void *fb, uint32_t stride,
         return;
     }
 
-    for (int32_t row = 0; row < h; ++row) {
+    int32_t fb_w = (int32_t)(stride / sizeof(uint32_t));
+    int32_t y_start = (y < 0) ? -y : 0;
+    int32_t y_end = h;
+    if (x < 0) { w += x; x = 0; }
+    if (x + w > fb_w) w = fb_w - x;
+    if (w <= 0) return;
+
+    for (int32_t row = y_start; row < y_end; ++row) {
         int32_t ry = row;
         int32_t x0 = x, rw = w;
 
@@ -236,6 +250,9 @@ void fb_fill_rect_round(void *fb, uint32_t stride,
             rw = w - 2 * (r - dx);
         }
 
+        if (rw <= 0) continue;
+        if (x0 < 0) { rw += x0; x0 = 0; }
+        if (x0 + rw > fb_w) rw = fb_w - x0;
         if (rw <= 0) continue;
         uint32_t *p = pixel_at(fb, stride, x0, y + row);
         uint8_t a = (color >> 24) & 0xFF;
@@ -260,6 +277,8 @@ void fb_draw_rect_round(void *fb, uint32_t stride,
         return;
     }
 
+    int32_t fb_w = (int32_t)(stride / sizeof(uint32_t));
+
     /* Draw horizontal spans at top and bottom (only the straight part) */
     fb_fill_rect(fb, stride, x + r, y, w - 2 * r, 1, color);
     fb_fill_rect(fb, stride, x + r, y + h - 1, w - 2 * r, 1, color);
@@ -273,14 +292,20 @@ void fb_draw_rect_round(void *fb, uint32_t stride,
         int32_t dx  = (int32_t)isqrt32((uint32_t)(r * r - dy * dy));
         int32_t ax  = r - dx;           /* offset from rect edge */
 
-        /* top-left */
-        *pixel_at(fb, stride, x + ax,         y + i)         = color;
-        /* top-right */
-        *pixel_at(fb, stride, x + w - 1 - ax, y + i)         = color;
-        /* bottom-left */
-        *pixel_at(fb, stride, x + ax,         y + h - 1 - i) = color;
-        /* bottom-right */
-        *pixel_at(fb, stride, x + w - 1 - ax, y + h - 1 - i) = color;
+        int32_t tl_x = x + ax,          tl_y = y + i;
+        int32_t tr_x = x + w - 1 - ax,  tr_y = y + i;
+        int32_t bl_x = x + ax,          bl_y = y + h - 1 - i;
+        int32_t br_x = x + w - 1 - ax,  br_y = y + h - 1 - i;
+
+        /* Bounds-check each pixel before writing */
+        if (tl_x >= 0 && tl_x < fb_w && tl_y >= 0)
+            *pixel_at(fb, stride, tl_x, tl_y) = color;
+        if (tr_x >= 0 && tr_x < fb_w && tr_y >= 0)
+            *pixel_at(fb, stride, tr_x, tr_y) = color;
+        if (bl_x >= 0 && bl_x < fb_w && bl_y >= 0)
+            *pixel_at(fb, stride, bl_x, bl_y) = color;
+        if (br_x >= 0 && br_x < fb_w && br_y >= 0)
+            *pixel_at(fb, stride, br_x, br_y) = color;
     }
 }
 
@@ -295,6 +320,7 @@ void fb_draw_text(void *fb, uint32_t stride,
                   const char *s, uint32_t fg, uint32_t bg)
 {
     if (!fb || !s) return;
+    int32_t fb_w = (int32_t)(stride / sizeof(uint32_t));
     int32_t cx = x;
     for (; *s; ++s) {
         unsigned char c = (unsigned char)*s;
@@ -304,9 +330,13 @@ void fb_draw_text(void *fb, uint32_t stride,
         }
         const uint8_t *glyph = fb_font8x16[c - FONT_FIRST];
         for (int row = 0; row < FONT_H; ++row) {
+            int32_t py = y + row;
+            if (py < 0) continue;
             uint8_t bits = glyph[row];
             for (int col = 0; col < FONT_W; ++col) {
-                uint32_t *p = pixel_at(fb, stride, cx + col, y + row);
+                int32_t px = cx + col;
+                if (px < 0 || px >= fb_w) continue;
+                uint32_t *p = pixel_at(fb, stride, px, py);
                 if (bits & (0x80 >> col)) {
                     *p = blend(fg, *p);
                 } else if ((bg >> 24) != 0) {
@@ -327,6 +357,7 @@ void fb_draw_text_wrap(void *fb, uint32_t stride,
 {
     if (!fb || !s || w <= 0 || h <= 0) return;
 
+    int32_t fb_w = (int32_t)(stride / sizeof(uint32_t));
     int32_t cols = w / FONT_W;
     int32_t rows = h / FONT_H;
     int32_t cur_col = 0, cur_row = 0;
@@ -349,9 +380,13 @@ void fb_draw_text_wrap(void *fb, uint32_t stride,
             int32_t px = x + cur_col * FONT_W;
             int32_t py = y + cur_row * FONT_H;
             for (int row = 0; row < FONT_H; ++row) {
+                int32_t draw_y = py + row;
+                if (draw_y < 0) continue;
                 uint8_t bits = glyph[row];
                 for (int col = 0; col < FONT_W; ++col) {
-                    uint32_t *p = pixel_at(fb, stride, px + col, py + row);
+                    int32_t draw_x = px + col;
+                    if (draw_x < 0 || draw_x >= fb_w) continue;
+                    uint32_t *p = pixel_at(fb, stride, draw_x, draw_y);
                     if (bits & (0x80 >> col)) {
                         *p = blend(fg, *p);
                     } else if ((bg >> 24) != 0) {
@@ -387,6 +422,13 @@ void fb_blit_rect(void *dst, uint32_t dst_stride,
                   int32_t dx, int32_t dy, int32_t w, int32_t h)
 {
     if (!dst || !src || w <= 0 || h <= 0) return;
+    int32_t dst_w = (int32_t)(dst_stride / sizeof(uint32_t));
+
+    if (dx < 0) { w += dx; dx = 0; }
+    if (dy < 0) { h += dy; dy = 0; }
+    if (dx + w > dst_w) w = dst_w - dx;
+    if (w <= 0 || h <= 0) return;
+
     for (int32_t row = 0; row < h; ++row) {
         const uint32_t *s = (const uint32_t *)((const uint8_t *)src
                             + (uint32_t)row * src_stride);

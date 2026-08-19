@@ -48,16 +48,20 @@ typedef __attribute__((may_alias)) struct { uint64_t tv_sec; uint64_t tv_nsec; }
 #define SYS_CLIPBOARD_SET 204
 #define SYS_CLIPBOARD_GET 205
 #define SYS_CONSOLE_PENDING 206
+#define SYS_POWER        210
+#define SYS_TIMEZONE     211
+#define SYS_DNS_RESOLVE  212
+#define SYS_NTP_SYNC     213
+#define SYS_PING         214
+#define SYS_NETINFO      215
 
 // Unified input event struct matching kernel/include/input.h
 typedef struct input_event {
-    uint64_t time_sec;
-    uint64_t time_usec;
-    uint16_t type;
-    uint16_t code;
-    int32_t value;
+    uint8_t type;
+    uint8_t code;
     int16_t x;
     int16_t y;
+    int16_t value;
 } input_event_t;
 
 struct proc_info {
@@ -198,6 +202,52 @@ static inline int sys_chdir(const char *path) {
 
 static inline int sys_getcwd(char *buf, uint64_t size) {
     return (int)syscall2(79, (uint64_t)buf, size);
+}
+
+/*
+ * Network / time zone helpers
+ */
+typedef struct timeval {
+    uint64_t tv_sec;
+    uint64_t tv_usec;
+} timeval_t;
+
+static inline int sys_gettimeofday(timeval_t *tv) {
+    return (int)syscall1(96, (uint64_t)tv);
+}
+
+static inline int sys_timezone_get(void) {
+    return (int)syscall1(SYS_TIMEZONE, 0);
+}
+
+static inline int sys_timezone_set(int offset_minutes) {
+    return (int)syscall2(SYS_TIMEZONE, 1, (uint64_t)offset_minutes);
+}
+
+static inline int sb_resolve(const char *name, uint32_t *ip_out) {
+    return (int)syscall2(SYS_DNS_RESOLVE, (uint64_t)name, (uint64_t)ip_out);
+}
+
+static inline int sb_ntp_sync(uint32_t server_ip, int64_t *offset_out) {
+    return (int)syscall2(SYS_NTP_SYNC, (uint64_t)server_ip, (uint64_t)offset_out);
+}
+
+static inline int sb_ping(uint32_t ip, uint32_t timeout_ms) {
+    return (int)syscall2(SYS_PING, (uint64_t)ip, (uint64_t)timeout_ms);
+}
+
+typedef struct sb_netinfo {
+    uint32_t ip;        /* network byte order */
+    uint32_t netmask;
+    uint32_t gateway;
+    uint32_t dns;
+    uint8_t mac[6];
+    uint8_t link;
+    char name[16];
+} sb_netinfo_t;
+
+static inline int sb_netinfo(sb_netinfo_t *info) {
+    return (int)syscall1(SYS_NETINFO, (uint64_t)info);
 }
 
 #endif

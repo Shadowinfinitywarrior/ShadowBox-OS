@@ -28,6 +28,7 @@
 #include "ipc.h"
 #include "net.h"
 #include "acpi.h"
+#include "desktop.h"
 #include "ahci.h"
 #include "usb.h"
 #include "fb.h"
@@ -46,6 +47,16 @@
 #include "buddy.h"
 #include "rtl8139.h"
 #include "hda.h"
+#include "ac97.h"
+#include "hdmi_audio.h"
+#include "usb_audio.h"
+#include "i2s.h"
+#include "virtio_gpu.h"
+#include "intel_gpu.h"
+#include "virtio_blk.h"
+#include "wifi.h"
+#include "bluetooth.h"
+#include "drm.h"
 
 uint32_t multiboot_info_ptr = 0;
 
@@ -194,6 +205,10 @@ static void kernel_subsys_init(void) {
     boot_stage_begin("Swap init");
     swap_init();
     boot_stage_end();
+
+    boot_stage_begin("Notification daemon init");
+    notification_daemon_init();
+    boot_stage_end();
 }
 
 static void initrd_mount(void) {
@@ -272,9 +287,143 @@ static void device_init(void) {
             extern void e1000_irq_handler(void);
             e1000_init(pci_dev);
             irq_register_handler(pci_dev->irq_line, e1000_irq_handler);
+             pic_clear_mask(pci_dev->irq_line);
+         }
+     }
+     boot_stage_end();
+
+    boot_stage_begin("AC'97 audio init");
+    {
+        pci_device_t *pci_dev = pci_find_device(AC97_VENDOR_ID, AC97_DEVICE_ID);
+        if (pci_dev) {
+            ac97_init(pci_dev);
+            irq_register_handler(pci_dev->irq_line, ac97_irq_handler);
             pic_clear_mask(pci_dev->irq_line);
         }
     }
+    {
+        pci_device_t *pci_dev = pci_find_device(AC97_PAYLOAD_VENDOR_ID, AC97_PAYLOAD_DEVICE_ID);
+        if (pci_dev) {
+            ac97_init(pci_dev);
+            irq_register_handler(pci_dev->irq_line, ac97_irq_handler);
+            pic_clear_mask(pci_dev->irq_line);
+        }
+    }
+    boot_stage_end();
+
+    boot_stage_begin("HDA audio subsystem init");
+    audio_hda_init();
+    boot_stage_end();
+
+    boot_stage_begin("HDMI audio init");
+    {
+        for (uint16_t bus = 0; bus < 256; bus++) {
+            for (uint8_t dev = 0; dev < 32; dev++) {
+                uint32_t class_info = pci_config_read(bus, dev, 0, 0x08);
+                uint8_t class_code = (class_info >> 24) & 0xFF;
+                uint8_t subclass = (class_info >> 16) & 0xFF;
+                uint32_t vendor = pci_config_read(bus, dev, 0, 0) & 0xFFFF;
+                if (vendor == 0xFFFF) continue;
+                if (class_code == 0x04 && subclass == 0x03) {
+                    uint32_t id_reg = pci_config_read(bus, dev, 0, 0);
+                    uint16_t device_id = (id_reg >> 16) & 0xFFFF;
+                    pci_device_t *pci_dev = pci_find_device(vendor, device_id);
+                    if (pci_dev) {
+                        hdmi_audio_init(pci_dev);
+                        irq_register_handler(pci_dev->irq_line, hdmi_audio_irq_handler);
+                        pic_clear_mask(pci_dev->irq_line);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    boot_stage_end();
+
+    boot_stage_begin("I2S audio init");
+    {
+        for (uint16_t bus = 0; bus < 256; bus++) {
+            for (uint8_t dev = 0; dev < 32; dev++) {
+                uint32_t id_reg = pci_config_read(bus, dev, 0, 0);
+                uint16_t vendor = id_reg & 0xFFFF;
+                if (vendor == 0xFFFF) continue;
+                uint32_t class_info = pci_config_read(bus, dev, 0, 0x08);
+                uint8_t class_code = (class_info >> 24) & 0xFF;
+                uint8_t subclass = (class_info >> 16) & 0xFF;
+                if (class_code == 0x04 && subclass == 0x01) {
+                    uint16_t device_id = (id_reg >> 16) & 0xFFFF;
+                    pci_device_t *pci_dev = pci_find_device(vendor, device_id);
+                    if (pci_dev) {
+                        i2s_init(pci_dev);
+                        irq_register_handler(pci_dev->irq_line, i2s_irq_handler);
+                        pic_clear_mask(pci_dev->irq_line);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    boot_stage_end();
+
+    boot_stage_begin("USB audio init");
+    usb_audio_init();
+    boot_stage_end();
+
+    boot_stage_begin("DRM init");
+    drm_init();
+    boot_stage_end();
+
+    boot_stage_begin("Virtio GPU init");
+    {
+        pci_device_t *pci_dev = pci_find_device(VIRTIO_GPU_VENDOR_ID, VIRTIO_GPU_DEVICE_ID);
+        if (pci_dev) {
+            virtio_gpu_init(pci_dev);
+            irq_register_handler(pci_dev->irq_line, virtio_gpu_irq_handler);
+            pic_clear_mask(pci_dev->irq_line);
+        }
+    }
+    boot_stage_end();
+
+    boot_stage_begin("Intel GPU init");
+    {
+        for (uint16_t bus = 0; bus < 256; bus++) {
+            for (uint8_t dev = 0; dev < 32; dev++) {
+                uint32_t id_reg = pci_config_read(bus, dev, 0, 0);
+                uint16_t vendor = id_reg & 0xFFFF;
+                if (vendor == 0xFFFF || vendor != INTEL_GPU_VENDOR_ID) continue;
+                uint16_t device_id = (id_reg >> 16) & 0xFFFF;
+                uint32_t class_info = pci_config_read(bus, dev, 0, 0x08);
+                uint8_t class_code = (class_info >> 24) & 0xFF;
+                uint8_t subclass = (class_info >> 16) & 0xFF;
+                if (class_code == 0x03 && subclass == 0x00) {
+                    pci_device_t *pci_dev = pci_find_device(vendor, device_id);
+                    if (pci_dev) {
+                        intel_gpu_init(pci_dev);
+                        irq_register_handler(pci_dev->irq_line, intel_gpu_irq_handler);
+                        pic_clear_mask(pci_dev->irq_line);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    boot_stage_end();
+
+    boot_stage_begin("Virtio blk init");
+    {
+        pci_device_t *pci_dev = pci_find_device(VIRTIO_BLK_VENDOR_ID, VIRTIO_BLK_DEVICE_ID);
+        if (pci_dev) {
+            virtio_blk_init(pci_dev);
+        }
+    }
+    boot_stage_end();
+
+    boot_stage_begin("WiFi init");
+    wifi_init();
+    boot_stage_end();
+
+    boot_stage_begin("Bluetooth init");
+    bluetooth_init();
     boot_stage_end();
 }
 
@@ -302,7 +451,7 @@ void init_user_thread(void *arg) {
         return;
     }
 
-    vfs_node_t *shell_node = vfs_finddir(fs_root, "desktop.elf");
+    vfs_node_t *shell_node = vfs_finddir(fs_root, "login.elf");
     if (!shell_node) {
         printk(KERN_ERR "Failed to find desktop.elf in initrd!\n");
         return;
@@ -322,7 +471,7 @@ void init_user_thread(void *arg) {
     uint64_t user_stack = aslr_get_stack_base();
     __asm__ volatile("mov %0, %%cr3" :: "r"(cur->cr3) : "memory");
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 16; i++) {
         uint64_t phys = (uint64_t)pmm_alloc_page();
         vmm_map_page(phys, user_stack - i * 0x1000, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
     }
@@ -402,6 +551,20 @@ void kernel_main(uint32_t magic, uint32_t info_ptr) {
     device_init();
     smp_bringup();
 
+    /* Tell the desktop shell the system is up (shown as a taskbar toast). */
+    {
+        notification_t boot_notify;
+        const char *app = "ShadowBox OS";
+        const char *sum = "System ready";
+        const char *body = "Welcome. Wi-Fi and Bluetooth services are online.";
+        memset(&boot_notify, 0, sizeof(boot_notify));
+        for (int i = 0; app[i] && i < 63; i++) boot_notify.app_name[i] = app[i];
+        for (int i = 0; sum[i] && i < 127; i++) boot_notify.summary[i] = sum[i];
+        for (int i = 0; body[i] && i < 511; i++) boot_notify.body[i] = body[i];
+        boot_notify.priority = NOTIFY_PRIORITY_NORMAL;
+        notification_send(&boot_notify);
+    }
+
     boot_stage_begin("HAL init");
     hal_init();
     boot_stage_end();
@@ -419,3 +582,6 @@ void kernel_main(uint32_t magic, uint32_t info_ptr) {
         __asm__ volatile("hlt");
     }
 }
+// Stub implementation for build - virtio block initialization
+// TODO: Implement real virtio block support
+int virtio_blk_init(pci_device_t *pci_dev) { (void)pci_dev; return 0; }
